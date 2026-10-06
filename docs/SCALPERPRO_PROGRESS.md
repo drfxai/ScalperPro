@@ -16,7 +16,7 @@
 - SP-P24-T01 Android unit tests — COMPLETED
 - SP-P24-T02 Android lint — COMPLETED
 - SP-P24-T03 Debug APK build — COMPLETED
-- SP-P25-T01 V1.0.0 GitHub Release — IN_PROGRESS
+- SP-P25-T01 V1.0.0 GitHub Release — COMPLETED
 
 ## CI validation
 
@@ -35,4 +35,4 @@ GitHub Actions run 37501908441 completed successfully:
 
 ## Exact next action
 
-V1.0.0 release workflow authorized by the product owner. Publish APK assets and SHA256SUMS, verify the GitHub Release, then update this checkpoint to COMPLETED.
+GitHub Release v1.0.0 verified. Assets: ScalperPro-V1.0.0-installable.apk, ScalperPro-V1.0.0-release-unsigned.apk, SHA256SUMS. Known product-scope limitations remain documented and are not represented as completed.
