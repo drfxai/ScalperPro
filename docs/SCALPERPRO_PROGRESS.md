@@ -35,5 +35,4 @@ GitHub Actions run 37501908441 completed successfully:
 
 ## Exact next action
 
-Run the V1.0.0 release workflow, publish APK assets and SHA256SUMS, then verify the
-GitHub Release and update this checkpoint to COMPLETED.
+V1.0.0 release workflow authorized by the product owner. Publish APK assets and SHA256SUMS, verify the GitHub Release, then update this checkpoint to COMPLETED.
