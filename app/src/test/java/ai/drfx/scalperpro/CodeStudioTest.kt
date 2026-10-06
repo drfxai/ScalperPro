@@ -165,6 +165,6 @@ class CodeStudioTest {
         val findings = PineStaticAnalyzer.analyze(
             "request.security(syminfo.tickerid, \"1D\", close, lookahead=barmerge.lookahead_on)"
         )
-        assertTrue(findings.any { it.code == "PINE_LOOKAHEAD_ON" })
+        assertTrue(findings.any { it.code == "PINE_LOOKAHEAD_CONTEXT_REVIEW" })
     }
 }
