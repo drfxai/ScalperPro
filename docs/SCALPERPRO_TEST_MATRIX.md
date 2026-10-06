@@ -49,3 +49,11 @@
 | MQL5 | CopyBuffer helper path | IMPLEMENTED / UNIT_TEST |
 | Backtest | deterministic same-input result | IMPLEMENTED / UNIT_TEST |
 | Backtest | conservative ambiguous stop/target resolution | IMPLEMENTED / UNIT_TEST |
+
+| Backtest Lab | expression engine EMA/SMA/RSI/ATR/OHLC | IMPLEMENTED / UNIT_TEST |
+| Backtest Lab | boolean AND/OR | IMPLEMENTED / UNIT_TEST |
+| Backtest Lab | crossover/crossunder | IMPLEMENTED / UNIT_TEST |
+| Backtest Lab | unsupported semantics fail closed | IMPLEMENTED / UNIT_TEST |
+| Backtest Lab | repeated Strategy Specification run is deterministic | IMPLEMENTED / UNIT_TEST |
+| Backtest Lab | synthetic dataset clearly labeled non-live | IMPLEMENTED / UI |
+| Backtest Lab | PR #8 Android unit tests/lint/APK | CI_RUNNING |

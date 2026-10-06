@@ -44,6 +44,7 @@ import ai.drfx.scalperpro.code.PineIndicatorGenerator
 import ai.drfx.scalperpro.code.PineStaticAnalyzer
 import ai.drfx.scalperpro.code.PineStudioEngine
 import ai.drfx.scalperpro.indicator.IndicatorTemplateCatalog
+import ai.drfx.scalperpro.lab.BacktestLabDemo
 import ai.drfx.scalperpro.lab.QuantCoderEngine
 import ai.drfx.scalperpro.lab.QuantLabCatalog
 import ai.drfx.scalperpro.lab.QuantLabChart
@@ -59,11 +60,13 @@ import ai.drfx.scalperpro.strategy.StrategySpecificationValidator
 import ai.drfx.scalperpro.strategy.TakeProfitDefinition
 import ai.drfx.scalperpro.strategy.TakeProfitMethod
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 internal enum class LabMode {
     AI_BUILDER,
     INDICATOR,
     SPECIFICATION,
+    BACKTEST,
     PINE,
     MQL5,
     CHART
@@ -173,6 +176,12 @@ internal fun LabScreen(
                 AssistChip(
                     onClick = { mode = LabMode.SPECIFICATION },
                     label = { Text("Strategy") }
+                )
+            }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.BACKTEST },
+                    label = { Text("Backtest") }
                 )
             }
             item {
@@ -298,7 +307,25 @@ internal fun LabScreen(
                     runtimeReport = null
                     mode = LabMode.PINE
                 },
-                onOpenChart = { mode = LabMode.CHART }
+                onOpenChart = { mode = LabMode.CHART },
+                onOpenBacktest = {
+                    mode = LabMode.BACKTEST
+                }
+            )
+
+            LabMode.BACKTEST -> BacktestLabPanel(
+                specification =
+                    strategySpecification,
+                onBackToStrategy = {
+                    mode =
+                        LabMode.SPECIFICATION
+                },
+                onOpenPine = {
+                    pineEditor =
+                        strategyPine.source
+                    runtimeReport = null
+                    mode = LabMode.PINE
+                }
             )
 
             LabMode.PINE -> PineLabPanel(
@@ -783,7 +810,8 @@ private fun StrategyForgePanel(
     isValid: Boolean,
     errors: List<String>,
     onSendToPine: () -> Unit,
-    onOpenChart: () -> Unit
+    onOpenChart: () -> Unit,
+    onOpenBacktest: () -> Unit
 ) {
     var selectedArchetypeId by remember {
         mutableStateOf("trend")
@@ -984,13 +1012,367 @@ private fun StrategyForgePanel(
         }
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onSendToPine) { Text("Generate / Review Pine") }
-                Button(onClick = onOpenChart) { Text("Chart Sandbox") }
+            Row(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
+            ) {
+                Button(onClick = onOpenBacktest) {
+                    Text("Run Backtest")
+                }
+                Button(onClick = onSendToPine) {
+                    Text("Generate Pine")
+                }
+                Button(onClick = onOpenChart) {
+                    Text("Chart")
+                }
             }
         }
     }
 }
+
+@Composable
+private fun BacktestLabPanel(
+    specification: StrategySpecification,
+    onBackToStrategy: () -> Unit,
+    onOpenPine: () -> Unit
+) {
+    val report =
+        remember(specification) {
+            BacktestLabDemo.run(
+                specification
+            )
+        }
+
+    LazyColumn(
+        contentPadding =
+            PaddingValues(16.dp),
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        "Deterministic Strategy Backtest",
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleLarge,
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+                    Text(
+                        specification.name +
+                            " • " +
+                            specification.symbol +
+                            " • " +
+                            specification.primaryTimeframe
+                    )
+                    Text(
+                        report.datasetLabel +
+                            " • " +
+                            report.candleCount +
+                            " candles",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .secondary
+                    )
+                    Text(
+                        "Research dataset only — not live market history.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .tertiary
+                    )
+                }
+            }
+        }
+
+        if (
+            report.compatibility
+                .errors
+                .isNotEmpty()
+        ) {
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                5.dp
+                            )
+                    ) {
+                        Text(
+                            "Compatibility blocked",
+                            fontWeight =
+                                FontWeight.Bold,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .error
+                        )
+                        report.compatibility
+                            .errors
+                            .forEach {
+                                Text(
+                                    it,
+                                    color =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .error
+                                )
+                            }
+                    }
+                }
+            }
+        }
+
+        if (
+            report.compatibility
+                .warnings
+                .isNotEmpty()
+        ) {
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                5.dp
+                            )
+                    ) {
+                        Text(
+                            "Model notes",
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+                        report.compatibility
+                            .warnings
+                            .forEach {
+                                Text(
+                                    it,
+                                    color =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .tertiary
+                                )
+                            }
+                    }
+                }
+            }
+        }
+
+        report.result?.let { result ->
+            val metrics =
+                result.metrics
+
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                6.dp
+                            )
+                    ) {
+                        Text(
+                            "Performance",
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+                        Text(
+                            "Net return: " +
+                                formatBacktestNumber(
+                                    metrics
+                                        .netReturnPercent
+                                ) +
+                                "%"
+                        )
+                        Text(
+                            "Trades: " +
+                                metrics.tradeCount +
+                                " • Win rate: " +
+                                formatBacktestNumber(
+                                    metrics
+                                        .winRatePercent
+                                ) +
+                                "%"
+                        )
+                        Text(
+                            "Profit factor: " +
+                                (
+                                    metrics
+                                        .profitFactor
+                                        ?.let(
+                                            ::formatBacktestNumber
+                                        )
+                                        ?: "N/A"
+                                    )
+                        )
+                        Text(
+                            "Max DD: " +
+                                formatBacktestNumber(
+                                    metrics
+                                        .maxDrawdownPercent
+                                ) +
+                                "% • Expectancy: " +
+                                formatBacktestNumber(
+                                    metrics
+                                        .expectancyR
+                                ) +
+                                "R"
+                        )
+                        Text(
+                            "Avg R: " +
+                                formatBacktestNumber(
+                                    metrics.averageR
+                                ) +
+                                " • Exposure: " +
+                                formatBacktestNumber(
+                                    metrics
+                                        .exposurePercent
+                                ) +
+                                "%"
+                        )
+                        Text(
+                            "Ending balance: " +
+                                formatBacktestNumber(
+                                    result.endingBalance
+                                )
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                5.dp
+                            )
+                    ) {
+                        Text(
+                            "Execution assumptions",
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+                        Text(
+                            "Spread: " +
+                                report.costs
+                                    .spreadPriceUnits +
+                                " price units"
+                        )
+                        Text(
+                            "Slippage: " +
+                                report.costs
+                                    .slippagePriceUnits +
+                                " price units / side"
+                        )
+                        Text(
+                            "Commission/unit/side: " +
+                                report.costs
+                                    .commissionPerUnitPerSide
+                        )
+                        Text(
+                            "If stop and target are both touched in the same candle, the engine resolves STOP first for a conservative ambiguous-bar assumption.",
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .tertiary
+                        )
+                    }
+                }
+            }
+
+            item {
+                Text(
+                    "Recent trades",
+                    fontWeight =
+                        FontWeight.Bold
+                )
+            }
+
+            items(
+                result.trades
+                    .takeLast(12)
+                    .reversed()
+            ) { trade ->
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(12.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                3.dp
+                            )
+                    ) {
+                        Text(
+                            trade.side.name +
+                                " • " +
+                                trade.exitReason.name,
+                            fontWeight =
+                                FontWeight.SemiBold
+                        )
+                        Text(
+                            "Entry " +
+                                formatBacktestNumber(
+                                    trade.entryPrice
+                                ) +
+                                " → Exit " +
+                                formatBacktestNumber(
+                                    trade.exitPrice
+                                )
+                        )
+                        Text(
+                            "Result " +
+                                formatBacktestNumber(
+                                    trade.rMultiple
+                                ) +
+                                "R • " +
+                                formatBacktestNumber(
+                                    trade.netPnl
+                                )
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Row(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(
+                    onClick =
+                        onBackToStrategy
+                ) {
+                    Text("Back to Strategy")
+                }
+                Button(
+                    onClick = onOpenPine
+                ) {
+                    Text("Open Pine")
+                }
+            }
+        }
+    }
+}
+
+private fun formatBacktestNumber(
+    value: Double
+): String =
+    String.format(
+        Locale.US,
+        "%.2f",
+        value
+    )
 
 @Composable
 private fun PineLabPanel(

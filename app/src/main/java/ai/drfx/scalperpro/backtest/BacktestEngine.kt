@@ -51,12 +51,22 @@ data class OpenPosition(
 )
 
 interface BacktestStrategy {
+    fun reset() = Unit
+
     fun evaluateEntry(history: List<Candle>): EntryDecision?
 
     fun shouldExit(
         history: List<Candle>,
         position: OpenPosition
     ): Boolean = false
+
+    fun onEntryOpened(
+        position: OpenPosition
+    ) = Unit
+
+    fun onPositionClosed(
+        trade: BacktestTrade
+    ) = Unit
 }
 
 data class BacktestTrade(
@@ -122,6 +132,8 @@ class DeterministicBacktestEngine {
         require(riskPercentPerTrade > 0.0)
         require(riskPercentPerTrade <= 10.0)
 
+        strategy.reset()
+
         var balance = initialBalance
         var position: OpenPosition? = null
         val trades = mutableListOf<BacktestTrade>()
@@ -147,6 +159,7 @@ class DeterministicBacktestEngine {
                     )
                     trades += trade
                     balance += trade.netPnl
+                    strategy.onPositionClosed(trade)
                     position = null
                 } else {
                     val history = candles.subList(0, index + 1)
@@ -166,6 +179,7 @@ class DeterministicBacktestEngine {
                         )
                         trades += trade
                         balance += trade.netPnl
+                        strategy.onPositionClosed(trade)
                         position = null
                     }
                 }
@@ -202,6 +216,7 @@ class DeterministicBacktestEngine {
                         entryIndex = index,
                         entryTimeEpochMillis = candle.openTimeEpochMillis
                     )
+                    strategy.onEntryOpened(position)
                 }
             }
         }
@@ -224,6 +239,7 @@ class DeterministicBacktestEngine {
             )
             trades += trade
             balance += trade.netPnl
+            strategy.onPositionClosed(trade)
         }
 
         return BacktestResult(

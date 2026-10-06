@@ -17,11 +17,11 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-P25-ALIGN-TAG",
-  "currentTask": "SP-PRIO-T18",
-  "currentStatus": "CORE_RELEASE_READY_DEVICE_VALIDATION_PENDING",
-  "workingBranch": "main",
-  "pullRequest": 7,
+  "lastCompletedTask": "SP-PRIO-T77",
+  "currentTask": "SP-PRIO-T78",
+  "currentStatus": "TESTING",
+  "workingBranch": "codex/strategy-backtest-lab",
+  "pullRequest": 8,
   "implementedInCurrentWave": [
     "Android trusted HTTPS client for Scalper AI chat and staged specialist workflows",
     "AI Builder specialist execution UI and Pine handoff",
@@ -34,15 +34,22 @@
     "MQL5 CTrade scaffold with risk sizing, spread/new-bar/position guards and CopyBuffer helpers",
     "Damped XYZ Neural Galaxy inertia with pause/play/reset orbit controls",
     "TradingView-aligned confirmed-HTF lookahead review and conservative next-tick fill default",
-    "Interactive strategy archetype/tool/timeframe reference selectors"
+    "Interactive strategy archetype/tool/timeframe reference selectors",
+    "Strategy Specification expression interpreter for EMA/SMA/RSI/ATR/OHLC",
+    "Boolean composition plus crossover/crossunder",
+    "Fail-closed Strategy Specification compatibility checker",
+    "Deterministic Strategy Specification backtest adapter",
+    "Beginner-facing Backtest Lab metrics and recent trade list"
   ],
   "knownBlockers": [
+    "PR #8 must pass Android unit tests, lint and APK build before merge",
+    "Production historical candle provider is not connected",
+    "TradingView Strategy Tester equivalence is not claimed",
+    "Structure/custom/trailing backtest semantics require explicit deterministic contracts",
     "Trusted AI Gateway URL/provider deployment is not configured in the default build",
     "TradingView external Pine compilation is unavailable",
     "MetaEditor compile worker is not configured",
-    "Production historical candle provider is not connected",
-    "Physical-device Neural Galaxy/Quant Lab validation is pending",
     "Production Android signing key is not configured"
   ],
-  "exactNextAction": "Perform physical-device Neural Galaxy and Quant Lab validation; keep live AI disabled until the trusted HTTPS gateway is deployed/configured."
+  "exactNextAction": "Run/fix PR #8 CI; merge only when green; verify main CI; then continue with production historical-data adapter and physical-device validation."
 }
