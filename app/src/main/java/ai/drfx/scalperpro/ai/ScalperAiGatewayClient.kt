@@ -22,6 +22,27 @@ data class AiLabWorkflowResult(
     val finalText: String
 )
 
+data class AiChatReply(
+    val provider: String,
+    val model: String,
+    val text: String
+)
+
+sealed interface AiChatExecutionResult {
+    data class Success(
+        val reply: AiChatReply
+    ) : AiChatExecutionResult
+
+    data class Unavailable(
+        val reason: String
+    ) : AiChatExecutionResult
+
+    data class Failure(
+        val code: String,
+        val message: String
+    ) : AiChatExecutionResult
+}
+
 sealed interface AiLabExecutionResult {
     data class Success(
         val workflow: AiLabWorkflowResult
@@ -178,6 +199,146 @@ class ScalperAiGatewayClient(
                 )
             } catch (throwable: Throwable) {
                 return@withContext AiLabExecutionResult.Failure(
+                    code = "GATEWAY_REQUEST_FAILED",
+                    message =
+                        throwable.message ?:
+                            "AI Gateway request failed."
+                )
+            } finally {
+                connection.disconnect()
+            }
+        }
+
+    suspend fun chat(
+        routingMode: AiRoutingMode,
+        message: String
+    ): AiChatExecutionResult =
+        withContext(Dispatchers.IO) {
+            if (!baseUrl.startsWith("https://")) {
+                return@withContext AiChatExecutionResult.Unavailable(
+                    "Trusted Scalper AI Gateway is not configured in this build."
+                )
+            }
+
+            if (message.isBlank()) {
+                return@withContext AiChatExecutionResult.Failure(
+                    code = "EMPTY_MESSAGE",
+                    message = "Enter a question for Scalper AI."
+                )
+            }
+
+            val payload = JSONObject()
+                .put(
+                    "mode",
+                    routingMode.toGatewayValue()
+                )
+                .put(
+                    "message",
+                    message.take(MAX_MESSAGE_CHARS)
+                )
+
+            val connection = try {
+                (
+                    URL(
+                        baseUrl + "/v1/ai/chat"
+                    ).openConnection() as
+                        HttpURLConnection
+                    ).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 15_000
+                    readTimeout = 90_000
+                    doOutput = true
+                    setRequestProperty(
+                        "content-type",
+                        "application/json; charset=utf-8"
+                    )
+                    setRequestProperty(
+                        "accept",
+                        "application/json"
+                    )
+                }
+            } catch (throwable: Throwable) {
+                return@withContext AiChatExecutionResult.Failure(
+                    code = "GATEWAY_CONNECTION_INIT",
+                    message =
+                        throwable.message ?:
+                            "Unable to prepare AI Gateway connection."
+                )
+            }
+
+            try {
+                connection.outputStream.use { output ->
+                    output.write(
+                        payload
+                            .toString()
+                            .toByteArray(
+                                Charsets.UTF_8
+                            )
+                    )
+                }
+
+                val status = connection.responseCode
+                val reader =
+                    if (status in 200..299) {
+                        connection.inputStream
+                    } else {
+                        connection.errorStream
+                    }?.bufferedReader(
+                        Charsets.UTF_8
+                    )
+
+                val body = reader
+                    ?.use {
+                        readLimited(
+                            it,
+                            MAX_RESPONSE_CHARS
+                        )
+                    }
+                    .orEmpty()
+
+                if (status !in 200..299) {
+                    val errorJson =
+                        runCatching {
+                            JSONObject(body)
+                        }.getOrNull()
+
+                    return@withContext AiChatExecutionResult.Failure(
+                        code =
+                            errorJson
+                                ?.optString("code")
+                                ?.takeIf {
+                                    it.isNotBlank()
+                                }
+                                ?: "HTTP_$status",
+                        message =
+                            errorJson
+                                ?.optString("error")
+                                ?.takeIf {
+                                    it.isNotBlank()
+                                }
+                                ?: "Scalper AI Gateway returned HTTP $status."
+                    )
+                }
+
+                val json = JSONObject(body)
+                return@withContext AiChatExecutionResult.Success(
+                    AiChatReply(
+                        provider =
+                            json.optString(
+                                "provider"
+                            ),
+                        model =
+                            json.optString(
+                                "model"
+                            ),
+                        text =
+                            json.optString(
+                                "text"
+                            )
+                    )
+                )
+            } catch (throwable: Throwable) {
+                return@withContext AiChatExecutionResult.Failure(
                     code = "GATEWAY_REQUEST_FAILED",
                     message =
                         throwable.message ?:
