@@ -2,53 +2,42 @@
 
 | Area | Test | Status |
 |---|---|---|
-| Baseline | Android unit tests | CI_REQUIRED_CURRENT_BRANCH |
-| Baseline | Android lint | CI_REQUIRED_CURRENT_BRANCH |
-| Baseline | Debug APK build | CI_REQUIRED_CURRENT_BRANCH |
-| Core | Risk math deterministic unit test | IMPLEMENTED |
-| Markets | Default watchlist integrity | IMPLEMENTED |
-| News | FACT vs AI ASSESSMENT model separation | IMPLEMENTED |
-| Signals | Valid lifecycle transition appends audit event | IMPLEMENTED |
-| Signals | STOPPED is terminal | IMPLEMENTED |
-| Strategy | Valid Strategy Specification passes validation | IMPLEMENTED |
-| Strategy | Excessive risk is rejected | IMPLEMENTED |
-| Pine | Generated artifact never claims compile verification | IMPLEMENTED |
-| Pine | lookahead_on is flagged | IMPLEMENTED |
-| MQL5 | Generated artifact never claims compile verification | IMPLEMENTED |
-| Backtest | Same input produces identical result | IMPLEMENTED |
-| Backtest | Stop wins ambiguous same-bar stop+target collision | IMPLEMENTED |
-| Chart Vision | Valid PNG request contract passes | IMPLEMENTED |
-| Chart Vision | Image above 10 MB is rejected | IMPLEMENTED |
-| Risk | XAUUSD deterministic sizing fixture | IMPLEMENTED |
-| Journal | Closed-trade statistics calculation | IMPLEMENTED |
-| Journal | Small samples suppress strong behavior claims | IMPLEMENTED |
-| Search | Result preserves category/source | IMPLEMENTED |
-| Notifications | Quiet hours suppress normal notifications | IMPLEMENTED |
-| Notifications | Critical risk alerts bypass quiet hours | IMPLEMENTED |
-| Diagnostics | Sensitive attributes/text are redacted | IMPLEMENTED |
-| Diagnostics | Buffer remains capacity bounded | IMPLEMENTED |
-| Offline | Cache freshness FRESH/STALE/EXPIRED | IMPLEMENTED |
-| Performance | Retry delay is bounded | IMPLEMENTED |
-| Security | Unsupported upload MIME is rejected | IMPLEMENTED |
-| AI Routing | Cross-provider fallback requires explicit enablement | IMPLEMENTED |
-| Learning | Tool deep-link mapping | PENDING_UI_TEST |
-| Home | OpenGL ES renderer initializes | PENDING_DEVICE |
-| Home | Default Y-axis auto-orbit | IMPLEMENTED / PENDING_DEVICE |
-| Home | X/Y drag | IMPLEMENTED / PENDING_DEVICE |
-| Home | Pinch zoom | IMPLEMENTED / PENDING_DEVICE |
-| Home | Z twist | IMPLEMENTED / PENDING_DEVICE |
-| AI | Gemini gateway path | PENDING_DEPLOYMENT |
-| AI | 9Router Smart/Combo path | PENDING_DEPLOYMENT |
-| Priority AI | Agent workflow planner routes indicator build specialists | PENDING_UNIT_TEST |
-| Priority AI | Agent workflow planner routes strategy build specialists | PENDING_UNIT_TEST |
-| Indicator | Valid Indicator Specification generates Pine v6 | PENDING_UNIT_TEST |
-| Indicator | Invalid Indicator Specification returns validation findings | PENDING_UNIT_TEST |
-| Quant Runtime | Local engine asset loads | CI / DEVICE_PENDING |
-| Quant Runtime | DrFXQuant Pine smoke compile/run report | DEVICE_PENDING |
-| Quant Runtime | Unsupported constructs are surfaced, not hidden | DEVICE_PENDING |
-| Chart Lab | TradingView Lightweight Charts 5.2.0 resolves/builds | CI_PENDING |
-| Chart Lab | Candlestick + EMA sample renders | DEVICE_PENDING |
-| Galaxy | AI/Pine/Quant priority clusters render | DEVICE_PENDING |
-| Galaxy | Point-sprite glow renders without corrupting line edges | DEVICE_PENDING |
-| Navigation | Selected AI/Pine/Strategy/Chart/MQL5 nodes route correctly | PENDING_UI_TEST |
-
+| Baseline | Main Android CI at c76ff246 | PASSED |
+| Current PR | Android unit tests | CI_RUNNING |
+| Current PR | Android lint | CI_RUNNING |
+| Current PR | Installable debug APK build | CI_RUNNING |
+| Galaxy | OpenGL ES renderer initializes | PENDING_DEVICE |
+| Galaxy | Default clockwise Y auto-orbit | IMPLEMENTED / PENDING_DEVICE |
+| Galaxy | X/Y drag, pinch zoom, Z twist | IMPLEMENTED / PENDING_DEVICE |
+| Galaxy | AI/Pine/Quant/MQL5 node routing | IMPLEMENTED / PENDING_UI_TEST |
+| Galaxy | Home core-cluster shortcuts | IMPLEMENTED |
+| AI | Specialist workflow planner: indicator | IMPLEMENTED / UNIT_TEST |
+| AI | Specialist workflow planner: strategy | IMPLEMENTED / UNIT_TEST |
+| AI | HTTPS gateway required | IMPLEMENTED |
+| AI | Gemini route | PENDING_DEPLOYMENT |
+| AI | 9Router Smart route | PENDING_DEPLOYMENT |
+| AI | 9Router Combo route | PENDING_DEPLOYMENT |
+| AI | Home draft reaches AI composer | IMPLEMENTED / PENDING_UI_TEST |
+| Indicator | Starter Indicator Specification validation | IMPLEMENTED / UNIT_TEST |
+| Indicator | Pine v6 generation | IMPLEMENTED / UNIT_TEST |
+| Pine QA | lookahead_on error | IMPLEMENTED / UNIT_TEST |
+| Pine QA | HTF confirmation review | IMPLEMENTED / UNIT_TEST |
+| Pine QA | strategy cost review | IMPLEMENTED / UNIT_TEST |
+| Strategy | excessive risk rejection | IMPLEMENTED / UNIT_TEST |
+| Strategy | no invented short entries | IMPLEMENTED / UNIT_TEST |
+| Strategy | commission/slippage/session/cooldown generation | IMPLEMENTED / UNIT_TEST |
+| Strategy | long/short stop/target exits | IMPLEMENTED / UNIT_TEST |
+| Quant Runtime | DrFXQuant local engine asset loads | PENDING_DEVICE |
+| Quant Runtime | compile/run report | PENDING_DEVICE |
+| Quant Runtime | unsupported constructs surfaced | PENDING_DEVICE |
+| Chart Lab | TradingView Lightweight Charts resolves | PASSED_ON_MAIN / CURRENT_CI |
+| Chart Lab | runtime plot mapping | IMPLEMENTED / PENDING_DEVICE |
+| Chart Lab | plotshape markers | IMPLEMENTED / PENDING_DEVICE |
+| Chart Lab | label markers | IMPLEMENTED / PENDING_DEVICE |
+| Chart Lab | TradingView attribution visible | IMPLEMENTED / PENDING_DEVICE |
+| MQL5 | generated artifact never claims compile verification | IMPLEMENTED / UNIT_TEST |
+| MQL5 | EMA condition translation | IMPLEMENTED / UNIT_TEST |
+| MQL5 | risk sizing/spread/position/new-bar guards | IMPLEMENTED / UNIT_TEST |
+| MQL5 | CopyBuffer helper path | IMPLEMENTED / UNIT_TEST |
+| Backtest | deterministic same-input result | IMPLEMENTED / UNIT_TEST |
+| Backtest | conservative ambiguous stop/target resolution | IMPLEMENTED / UNIT_TEST |
