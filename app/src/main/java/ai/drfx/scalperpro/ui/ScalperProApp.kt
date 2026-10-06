@@ -274,7 +274,32 @@ private fun HomeScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize().background(Color(0xFF05060A))) {
+    val homeBackground =
+        if (darkTheme) {
+            Color(0xFF05060A)
+        } else {
+            Color(0xFFF1F4FB)
+        }
+
+    val homeText =
+        if (darkTheme) {
+            Color.White
+        } else {
+            Color(0xFF121522)
+        }
+
+    val overlaySurface =
+        if (darkTheme) {
+            Color(0x8A111527)
+        } else {
+            Color(0xEAFDFEFF)
+        }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(homeBackground)
+    ) {
         AndroidView(
             factory = { context ->
                 GalaxyGraphView(context) { node ->
@@ -284,12 +309,18 @@ private fun HomeScreen(
                     view.setAutoOrbit(
                         autoOrbit
                     )
+                    view.setLightTheme(
+                        !darkTheme
+                    )
                 }
             },
             update = { view ->
                 galaxyView = view
                 view.setAutoOrbit(
                     autoOrbit
+                )
+                view.setLightTheme(
+                    !darkTheme
                 )
             },
             modifier = Modifier.fillMaxSize()
@@ -308,7 +339,7 @@ private fun HomeScreen(
                 Column {
                     Text(
                         "Scalper Pro",
-                        color = Color.White,
+                        color = homeText,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
@@ -338,7 +369,7 @@ private fun HomeScreen(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0x8A111527)
+                    containerColor = overlaySurface
                 ),
                 shape = RoundedCornerShape(18.dp)
             ) {
@@ -350,7 +381,7 @@ private fun HomeScreen(
                 ) {
                     Text(
                         "Selected: " + selectedNode,
-                        color = Color.White
+                        color = homeText
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -491,7 +522,12 @@ private fun HomeScreen(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xE8111420)
+                    containerColor =
+                        if (darkTheme) {
+                            Color(0xE8111420)
+                        } else {
+                            Color(0xF7FFFFFF)
+                        }
                 ),
                 shape = RoundedCornerShape(22.dp)
             ) {
