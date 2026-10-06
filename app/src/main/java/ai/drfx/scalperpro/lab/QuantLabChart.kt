@@ -230,72 +230,124 @@ private fun runtimeMarkers(
     report: QuantRuntimeReport?,
     candles: List<CandlestickData>
 ): List<SeriesMarker> {
-    if (
-        report == null ||
-        report.shapeSeries.isEmpty()
-    ) {
+    if (report == null) {
         return emptyList()
     }
 
-    return report.shapeSeries
-        .flatMapIndexed {
-                seriesIndex,
-                shape ->
-            shape.indices
-                .mapNotNull { candleIndex ->
-                    val candle =
-                        candles.getOrNull(
-                            candleIndex
-                        ) ?:
-                            return@mapNotNull null
-
-                    SeriesMarker(
-                        time = candle.time,
-                        position =
-                            if (shape.below) {
-                                SeriesMarkerPosition
-                                    .BELOW_BAR
-                            } else {
-                                SeriesMarkerPosition
-                                    .ABOVE_BAR
-                            },
-                        color = seriesColor(
-                            shape.color,
-                            seriesIndex
-                        ),
-                        shape =
-                            when (shape.glyph) {
-                                "▼" ->
-                                    SeriesMarkerShape
-                                        .ARROW_DOWN
-                                "●" ->
-                                    SeriesMarkerShape
-                                        .CIRCLE
-                                else ->
-                                    SeriesMarkerShape
-                                        .ARROW_UP
-                            },
-                        text =
-                            shape.text
-                                .ifBlank {
-                                    shape.title
-                                }
-                                .take(48),
-                        id =
-                            "runtime-" +
-                                seriesIndex +
-                                "-" +
+    val shapeMarkers =
+        report.shapeSeries
+            .flatMapIndexed {
+                    seriesIndex,
+                    shape ->
+                shape.indices
+                    .mapNotNull {
+                            candleIndex ->
+                        val candle =
+                            candles.getOrNull(
                                 candleIndex
-                    )
-                }
-        }
+                            ) ?:
+                                return@mapNotNull null
+
+                        SeriesMarker(
+                            time = candle.time,
+                            position =
+                                if (shape.below) {
+                                    SeriesMarkerPosition
+                                        .BELOW_BAR
+                                } else {
+                                    SeriesMarkerPosition
+                                        .ABOVE_BAR
+                                },
+                            color = seriesColor(
+                                shape.color,
+                                seriesIndex
+                            ),
+                            shape =
+                                when (shape.glyph) {
+                                    "▼" ->
+                                        SeriesMarkerShape
+                                            .ARROW_DOWN
+                                    "●" ->
+                                        SeriesMarkerShape
+                                            .CIRCLE
+                                    else ->
+                                        SeriesMarkerShape
+                                            .ARROW_UP
+                                },
+                            text =
+                                shape.text
+                                    .ifBlank {
+                                        shape.title
+                                    }
+                                    .take(48),
+                            id =
+                                "runtime-shape-" +
+                                    seriesIndex +
+                                    "-" +
+                                    candleIndex
+                        )
+                    }
+            }
+
+    val labelMarkers =
+        report.labelSeries
+            .mapNotNull {
+                    label ->
+                val candle =
+                    candles.getOrNull(
+                        label.index
+                    ) ?:
+                        return@mapNotNull null
+
+                val isDown =
+                    label.direction
+                        .contains(
+                            "down",
+                            ignoreCase = true
+                        )
+
+                SeriesMarker(
+                    time = candle.time,
+                    position =
+                        if (isDown) {
+                            SeriesMarkerPosition
+                                .ABOVE_BAR
+                        } else {
+                            SeriesMarkerPosition
+                                .BELOW_BAR
+                        },
+                    color = seriesColor(
+                        label.color,
+                        label.index
+                    ),
+                    shape =
+                        if (isDown) {
+                            SeriesMarkerShape
+                                .ARROW_DOWN
+                        } else {
+                            SeriesMarkerShape
+                                .ARROW_UP
+                        },
+                    text =
+                        label.text
+                            .ifBlank {
+                                "Label"
+                            }
+                            .take(48),
+                    id =
+                        "runtime-label-" +
+                            label.index
+                )
+            }
+
+    return (shapeMarkers + labelMarkers)
         .sortedBy { marker ->
             when (val time = marker.time) {
                 is Time.Utc -> time.timestamp
                 else -> 0L
             }
         }
-        .takeLast(800)
+        .takeLast(900)
 }
 
 private fun runtimeLineData(
