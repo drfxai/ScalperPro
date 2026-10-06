@@ -336,6 +336,13 @@ private fun AiBuilderPanel(
     onPromptChange: (String) -> Unit,
     taskType: LabTaskType,
     onTaskTypeChange: (LabTaskType) -> Unit,
+    routingMode: AiRoutingMode,
+    onRoutingModeChange: (AiRoutingMode) -> Unit,
+    gatewayConfigured: Boolean,
+    aiRunning: Boolean,
+    aiExecution: AiLabExecutionResult?,
+    onRunAiTeam: () -> Unit,
+    onOpenGeneratedPine: () -> Unit,
     onOpenIndicator: () -> Unit,
     onOpenStrategy: () -> Unit
 ) {
@@ -417,6 +424,165 @@ private fun AiBuilderPanel(
         }
 
         item {
+            Text("AI Route", fontWeight = FontWeight.Bold)
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(AiRoutingMode.entries) { mode ->
+                    AssistChip(
+                        onClick = {
+                            onRoutingModeChange(mode)
+                        },
+                        label = {
+                            Text(
+                                when (mode) {
+                                    AiRoutingMode.GEMINI_DIRECT ->
+                                        "Gemini Direct"
+                                    AiRoutingMode.NINE_ROUTER_SMART ->
+                                        "9Router Smart"
+                                    AiRoutingMode.NINE_ROUTER_COMBO ->
+                                        "9Router Combo"
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+
+            Text(
+                if (gatewayConfigured) {
+                    "Trusted AI Gateway: CONFIGURED"
+                } else {
+                    "Trusted AI Gateway: NOT CONFIGURED"
+                },
+                color =
+                    if (gatewayConfigured) {
+                        MaterialTheme.colorScheme.secondary
+                    } else {
+                        MaterialTheme.colorScheme.tertiary
+                    }
+            )
+
+            Text(
+                "Selected route: " + routingMode.name,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+
+        item {
+            Button(
+                enabled =
+                    !aiRunning &&
+                        prompt.isNotBlank(),
+                onClick = onRunAiTeam
+            ) {
+                Text(
+                    if (aiRunning) {
+                        "AI Team Running..."
+                    } else {
+                        "Run AI Specialist Team"
+                    }
+                )
+            }
+        }
+
+        aiExecution?.let { execution ->
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(8.dp)
+                    ) {
+                        when (execution) {
+                            is AiLabExecutionResult.Unavailable -> {
+                                Text(
+                                    "Gateway unavailable",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    execution.reason,
+                                    color =
+                                        MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+
+                            is AiLabExecutionResult.Failure -> {
+                                Text(
+                                    "AI workflow failed",
+                                    fontWeight = FontWeight.Bold,
+                                    color =
+                                        MaterialTheme.colorScheme.error
+                                )
+                                Text(
+                                    execution.code +
+                                        " • " +
+                                        execution.message
+                                )
+                            }
+
+                            is AiLabExecutionResult.Success -> {
+                                Text(
+                                    "AI Specialist Results",
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                execution.workflow.stages
+                                    .forEachIndexed {
+                                            index,
+                                            stage ->
+                                        Text(
+                                            (index + 1).toString() +
+                                                ". " +
+                                                stage.title +
+                                                " • " +
+                                                stage.provider +
+                                                " / " +
+                                                stage.model,
+                                            fontWeight =
+                                                FontWeight.SemiBold
+                                        )
+
+                                        val preview =
+                                            stage.text.take(1_400)
+
+                                        Text(
+                                            preview +
+                                                if (
+                                                    stage.text.length >
+                                                        preview.length
+                                                ) {
+                                                    "…"
+                                                } else {
+                                                    ""
+                                                }
+                                        )
+                                    }
+
+                                if (
+                                    execution.workflow.stages
+                                        .any {
+                                            it.role == "pine"
+                                        }
+                                ) {
+                                    Button(
+                                        onClick =
+                                            onOpenGeneratedPine
+                                    ) {
+                                        Text(
+                                            "Open AI Pine in Lab"
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onOpenIndicator) {
                     Text("Open Indicator Forge")
@@ -429,7 +595,7 @@ private fun AiBuilderPanel(
 
         item {
             Text(
-                "Live multi-agent execution will use the trusted Scalper AI Gateway. The Android app does not store Gemini or 9Router secrets.",
+                "Live multi-agent execution uses the trusted Scalper AI Gateway. The Android app stores no Gemini or 9Router secrets; without a configured HTTPS gateway it remains safely unavailable.",
                 color = MaterialTheme.colorScheme.tertiary
             )
         }
@@ -864,4 +1030,40 @@ private fun CodeArtifactPanel(
             )
         }
     }
+}
+
+
+private fun extractCodeBlock(
+    text: String
+): String {
+    val fenceStart =
+        text.indexOf("```")
+
+    if (fenceStart < 0) {
+        return text.trim()
+    }
+
+    val firstLineEnd =
+        text.indexOf('\n', fenceStart)
+
+    if (firstLineEnd < 0) {
+        return text.trim()
+    }
+
+    val fenceEnd =
+        text.indexOf(
+            "```",
+            firstLineEnd + 1
+        )
+
+    if (fenceEnd < 0) {
+        return text.trim()
+    }
+
+    return text
+        .substring(
+            firstLineEnd + 1,
+            fenceEnd
+        )
+        .trim()
 }
