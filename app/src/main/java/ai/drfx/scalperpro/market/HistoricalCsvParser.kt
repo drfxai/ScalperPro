@@ -347,6 +347,7 @@ object HistoricalCsvParser {
         value: String
     ): String =
         value
+            .removePrefix("\uFEFF")
             .lowercase()
             .replace(" ", "")
             .replace("-", "")
@@ -355,14 +356,31 @@ object HistoricalCsvParser {
 
     private fun parseNumber(
         value: String
-    ): Double? =
-        value
-            .trim()
-            .replace(
-                ",",
-                ""
-            )
+    ): Double? {
+        val raw =
+            value.trim()
+
+        val normalized =
+            when {
+                raw.contains(',') &&
+                    raw.contains('.') ->
+                    raw.replace(
+                        ",",
+                        ""
+                    )
+
+                raw.contains(',') ->
+                    raw.replace(
+                        ',',
+                        '.'
+                    )
+
+                else -> raw
+            }
+
+        return normalized
             .toDoubleOrNull()
+    }
 
     private fun parseTimestamp(
         value: String
