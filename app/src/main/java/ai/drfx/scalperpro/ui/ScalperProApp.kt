@@ -29,6 +29,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import ai.drfx.scalperpro.diagnostics.AppDiagnostics
 import ai.drfx.scalperpro.galaxy.GalaxyGraphView
 import ai.drfx.scalperpro.learning.ToolDeepLink
 
@@ -54,6 +56,9 @@ internal enum class Destination {
     Risk,
     Journal,
     Learn,
+    Search,
+    Settings,
+    Diagnostics,
     About
 }
 
@@ -85,6 +90,16 @@ fun ScalperProApp() {
     fun openLab(mode: LabMode) {
         labMode = mode
         destination = Destination.Lab
+    }
+
+    LaunchedEffect(destination) {
+        AppDiagnostics.record(
+            eventName = "ui.navigation",
+            attributes = mapOf(
+                "destination" to destination.name
+            ),
+            result = "DISPLAYED"
+        )
     }
 
     MaterialTheme(colorScheme = colors) {
@@ -169,6 +184,16 @@ fun ScalperProApp() {
                                 }
                             }
                         )
+                        Destination.Search -> SearchScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Settings -> SettingsScreen(
+                            onHome = { destination = Destination.Home },
+                            onDiagnostics = { destination = Destination.Diagnostics }
+                        )
+                        Destination.Diagnostics -> DiagnosticsScreen {
+                            destination = Destination.Home
+                        }
                         Destination.About -> AboutScreen {
                             destination = Destination.Home
                         }
@@ -222,6 +247,16 @@ private fun HomeScreen(
                     )
                 }
                 Row {
+                    TextButton(
+                        onClick = { onNavigate(Destination.Search) }
+                    ) {
+                        Text("Search")
+                    }
+                    TextButton(
+                        onClick = { onNavigate(Destination.Settings) }
+                    ) {
+                        Text("Settings")
+                    }
                     TextButton(onClick = onToggleTheme) {
                         Text(if (darkTheme) "Light" else "Dark")
                     }

@@ -22,6 +22,15 @@
 | Risk | XAUUSD deterministic sizing fixture | IMPLEMENTED |
 | Journal | Closed-trade statistics calculation | IMPLEMENTED |
 | Journal | Small samples suppress strong behavior claims | IMPLEMENTED |
+| Search | Result preserves category/source | IMPLEMENTED |
+| Notifications | Quiet hours suppress normal notifications | IMPLEMENTED |
+| Notifications | Critical risk alerts bypass quiet hours | IMPLEMENTED |
+| Diagnostics | Sensitive attributes/text are redacted | IMPLEMENTED |
+| Diagnostics | Buffer remains capacity bounded | IMPLEMENTED |
+| Offline | Cache freshness FRESH/STALE/EXPIRED | IMPLEMENTED |
+| Performance | Retry delay is bounded | IMPLEMENTED |
+| Security | Unsupported upload MIME is rejected | IMPLEMENTED |
+| AI Routing | Cross-provider fallback requires explicit enablement | IMPLEMENTED |
 | Learning | Tool deep-link mapping | PENDING_UI_TEST |
 | Home | OpenGL ES renderer initializes | PENDING_DEVICE |
 | Home | Default Y-axis auto-orbit | IMPLEMENTED / PENDING_DEVICE |
