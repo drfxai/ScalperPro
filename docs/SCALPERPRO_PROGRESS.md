@@ -59,7 +59,8 @@ credentials, certificates and private keys.
 - SP-PRIO-T13 Node selection routes into AI/Pine/Strategy/Chart/MQL5 — IMPLEMENTED
 - SP-PRIO-T14 Home core-cluster shortcuts — IMPLEMENTED
 - SP-PRIO-T15 Home AI prompt handoff — IMPLEMENTED
-- SP-PRIO-T16 Physical-device FPS/gesture/fallback validation — PENDING_DEVICE
+- SP-PRIO-T16 Damped XYZ inertia + user pause/play/reset orbit controls — IMPLEMENTED
+- SP-PRIO-T17 Physical-device FPS/gesture/fallback validation — PENDING_DEVICE
 
 ## Scalper AI
 
@@ -83,13 +84,15 @@ optional non-secret HTTPS gateway URL through `SCALPER_AI_GATEWAY_BASE_URL`.
 - SP-PRIO-T31 Typed Indicator Specification — IMPLEMENTED
 - SP-PRIO-T32 Pine v6 indicator generator — IMPLEMENTED
 - SP-PRIO-T33 TradingView QA static analyzer — IMPLEMENTED
-- SP-PRIO-T34 Explicit no-lookahead / HTF-confirmation review — IMPLEMENTED
+- SP-PRIO-T34 TradingView-aligned future-leak / confirmed-HTF review — IMPLEMENTED
 - SP-PRIO-T35 Strategy Specification explicit short-entry rules — IMPLEMENTED
 - SP-PRIO-T36 Strategy execution assumptions (commission/slippage) — IMPLEMENTED
 - SP-PRIO-T37 Pine strategy session/cooldown/confirmed-bar generation — IMPLEMENTED
 - SP-PRIO-T38 Pine ATR/fixed stop + fixed-R/fixed target generation — IMPLEMENTED
 - SP-PRIO-T39 Safe long/short `strategy.exit` generation — IMPLEMENTED
 - SP-PRIO-T40 Unsupported structure/custom/trailing logic is reported, never invented — IMPLEMENTED
+- SP-PRIO-T41 Official TradingView Pine engineering standard documented — IMPLEMENTED
+- SP-PRIO-T42 Conservative next-tick strategy fill default; same-bar fill is explicit — IMPLEMENTED
 
 ## Quant Runtime / Chart Sandbox
 
@@ -133,7 +136,7 @@ TESTING
 
 ## Exact next action
 
-1. Run PR #7 Android unit tests, lint and installable APK build.
+1. Run the latest PR #7 Android unit tests, lint and installable APK build.
 2. Fix every CI failure; do not merge a red build.
 3. When CI is green, merge PR #7.
 4. Verify Android CI again on `main`.
