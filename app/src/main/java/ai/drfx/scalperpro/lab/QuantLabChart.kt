@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
-import com.tradingview.lightweightcharts.api.chart.models.color.SolidColor
+import com.tradingview.lightweightcharts.api.chart.models.color.surface.SolidColor
 import com.tradingview.lightweightcharts.api.chart.models.color.toIntColor
 import com.tradingview.lightweightcharts.api.options.models.CandlestickSeriesOptions
 import com.tradingview.lightweightcharts.api.options.models.LineSeriesOptions
