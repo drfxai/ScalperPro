@@ -608,6 +608,25 @@ private fun IndicatorForgePanel(
     onSendToPine: () -> Unit,
     onOpenChart: () -> Unit
 ) {
+    var selectedToolId by remember {
+        mutableStateOf("indicator-forge")
+    }
+    var selectedTimeframe by remember {
+        mutableStateOf("15m")
+    }
+
+    val selectedTool =
+        QuantLabCatalog.tools
+            .firstOrNull {
+                it.id == selectedToolId
+            }
+
+    val timeframe =
+        QuantLabCatalog.timeframes
+            .firstOrNull {
+                it.code == selectedTimeframe
+            }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -653,8 +672,22 @@ private fun IndicatorForgePanel(
                     }
                 ) { tool ->
                     AssistChip(
-                        onClick = { },
-                        label = { Text(tool.title) }
+                        onClick = {
+                            selectedToolId =
+                                tool.id
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedToolId ==
+                                        tool.id
+                                ) {
+                                    "✓ " + tool.title
+                                } else {
+                                    tool.title
+                                }
+                            )
+                        }
                     )
                 }
             }
@@ -663,10 +696,65 @@ private fun IndicatorForgePanel(
         item {
             Text("Timeframes", fontWeight = FontWeight.Bold)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(QuantLabCatalog.timeframes) { timeframe ->
+                items(QuantLabCatalog.timeframes) { item ->
                     AssistChip(
-                        onClick = { },
-                        label = { Text(timeframe.code) }
+                        onClick = {
+                            selectedTimeframe =
+                                item.code
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedTimeframe ==
+                                        item.code
+                                ) {
+                                    "✓ " + item.code
+                                } else {
+                                    item.code
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "Selected Lab Context",
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+                    Text(
+                        selectedTool?.title ?:
+                            "Indicator Forge",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .secondary
+                    )
+                    selectedTool?.let {
+                        Text(it.description)
+                    }
+                    timeframe?.let {
+                        Text(
+                            it.code +
+                                " • " +
+                                it.useCase
+                        )
+                    }
+                    Text(
+                        "Selections are design context; generated code changes only when the underlying Indicator Specification or AI plan changes.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .tertiary
                     )
                 }
             }
@@ -697,6 +785,27 @@ private fun StrategyForgePanel(
     onSendToPine: () -> Unit,
     onOpenChart: () -> Unit
 ) {
+    var selectedArchetypeId by remember {
+        mutableStateOf("trend")
+    }
+    var selectedTimeframe by remember {
+        mutableStateOf(
+            specification.primaryTimeframe
+        )
+    }
+
+    val selectedArchetype =
+        QuantLabCatalog.strategyArchetypes
+            .firstOrNull {
+                it.id == selectedArchetypeId
+            }
+
+    val selectedTf =
+        QuantLabCatalog.timeframes
+            .firstOrNull {
+                it.code == selectedTimeframe
+            }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -747,8 +856,110 @@ private fun StrategyForgePanel(
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(QuantLabCatalog.strategyArchetypes) { item ->
                     AssistChip(
-                        onClick = { },
-                        label = { Text(item.title) }
+                        onClick = {
+                            selectedArchetypeId =
+                                item.id
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedArchetypeId ==
+                                        item.id
+                                ) {
+                                    "✓ " + item.title
+                                } else {
+                                    item.title
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            Text(
+                "Timeframes",
+                fontWeight = FontWeight.Bold
+            )
+            LazyRow(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    QuantLabCatalog.timeframes
+                ) { item ->
+                    AssistChip(
+                        onClick = {
+                            selectedTimeframe =
+                                item.code
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedTimeframe ==
+                                        item.code
+                                ) {
+                                    "✓ " + item.code
+                                } else {
+                                    item.code
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "Strategy Reference",
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+                    selectedArchetype?.let {
+                        Text(
+                            it.title,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .secondary
+                        )
+                        Text(it.summary)
+                        Text(
+                            "Useful tools: " +
+                                it.usefulIndicators
+                                    .joinToString(" • ")
+                        )
+                        Text(
+                            "Caution: " +
+                                it.caution,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .tertiary
+                        )
+                    }
+                    selectedTf?.let {
+                        Text(
+                            "Timeframe: " +
+                                it.code +
+                                " • " +
+                                it.useCase
+                        )
+                    }
+                    Text(
+                        "Reference selections guide planning. The stored Strategy Specification remains the execution source of truth.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .tertiary
                     )
                 }
             }
