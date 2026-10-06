@@ -73,7 +73,7 @@ into a beginner-focused educational product.
    Reuse the engineering patterns, not only the visual indicator:
    - explicit presets
    - confirmed HTF logic
-   - no-lookahead discipline
+   - no-future-leak / confirmed-HTF discipline
    - session filters
    - ADX/volatility regime filters
    - loss cooldown
