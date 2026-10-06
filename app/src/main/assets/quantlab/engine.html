@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scalper Pro Quant Runtime</title>
+</head>
+<body>
+<script src="quant-coder.js"></script>
+<script>
+(function () {
+  function demoCandles() {
+    var out = [];
+    var px = 100;
+    var start = 1704067200000;
+    for (var i = 0; i < 320; i++) {
+      var drift = Math.sin(i / 9) * 1.1 + Math.sin(i / 31) * 0.55 + 0.035;
+      var open = px;
+      px = Math.max(1, px + drift);
+      var wick = 0.45 + Math.abs(Math.sin(i / 5)) * 0.55;
+      out.push({
+        t: start + i * 60000,
+        o: open,
+        h: Math.max(open, px) + wick,
+        l: Math.min(open, px) - wick,
+        c: px
+      });
+    }
+    return out;
+  }
+
+  function splitWarnings(warnings) {
+    var errors = [];
+    var skips = [];
+    (warnings || []).forEach(function (w) {
+      if (/parse error|unexpected token|expected '/i.test(w)) errors.push(String(w));
+      else skips.push(String(w));
+    });
+    return { errors: errors, skips: skips };
+  }
+
+  function nonNullCount(values) {
+    var n = 0;
+    for (var i = 0; i < (values || []).length; i++) {
+      if (values[i] != null) n++;
+    }
+    return n;
+  }
+
+  window.scalperQuantAnalyze = function (source) {
+    try {
+      if (!window.dqQuantCoder) {
+        return JSON.stringify({ ok: false, error: "QUANT_RUNTIME_NOT_READY" });
+      }
+
+      var started = Date.now();
+      var program = window.dqQuantCoder.compile(String(source || ""));
+      var split = splitWarnings(program.warnings || []);
+      var result = window.dqQuantCoder.run(program, demoCandles(), null, 6000);
+
+      var plotActivity = (result.plots || []).map(nonNullCount);
+      var shapeActivity = (result.shapes || []).map(function (x) { return (x || []).length; });
+      var runtimeMs = Date.now() - started;
+
+      return JSON.stringify({
+        ok: true,
+        title: program.title || "Custom",
+        pineVersion: program.pineVersion || 0,
+        overlay: !!program.overlay,
+        isStrategy: !!program.isStrategy,
+        strategyOrders: program.strategyOrders || 0,
+        lineCount: program.lineCount || 0,
+        nodeCount: program.nodeCount || 0,
+        plots: (program.plots || []).length,
+        shapes: (program.shapes || []).length,
+        candles: (program.candles || []).length,
+        inputs: (program.inputs || []).map(function (input) {
+          return {
+            title: String(input.title || input.name || "Input"),
+            defaultValue: input.def == null ? null : input.def
+          };
+        }),
+        warnings: (program.warnings || []).map(String),
+        parseErrors: split.errors,
+        unsupported: split.skips,
+        plotActivity: plotActivity,
+        shapeActivity: shapeActivity,
+        runtimeMs: runtimeMs,
+        engine: "DrFXQuant Quant Coder"
+      });
+    } catch (e) {
+      return JSON.stringify({
+        ok: false,
+        error: String((e && e.message) || e || "QUANT_RUNTIME_ERROR")
+      });
+    }
+  };
+})();
+</script>
+</body>
+</html>
