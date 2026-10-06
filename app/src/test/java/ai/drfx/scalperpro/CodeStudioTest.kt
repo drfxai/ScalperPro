@@ -1,5 +1,6 @@
 package ai.drfx.scalperpro
 
+import ai.drfx.scalperpro.code.Mql5ExpressionTranslator
 import ai.drfx.scalperpro.code.Mql5StudioEngine
 import ai.drfx.scalperpro.code.PineStaticAnalyzer
 import ai.drfx.scalperpro.code.PineStudioEngine
@@ -117,6 +118,46 @@ class CodeStudioTest {
         val artifact = Mql5StudioEngine.generate(spec())
         assertEquals(VerificationStatus.STATIC_ANALYZED, artifact.verificationStatus)
         assertTrue(artifact.source.contains("#property strict"))
+    }
+
+    @Test
+    fun mqlTranslatorSupportsCommonConfirmedBarOperands() {
+        val result = Mql5ExpressionTranslator.translate(
+            "ta.ema(close, 50) > ta.ema(close, 200)"
+        )
+
+        assertTrue(result.supported)
+        assertTrue(
+            result.expression.orEmpty().contains(
+                "ReadMA(50, 1, MODE_EMA)"
+            )
+        )
+        assertTrue(
+            result.expression.orEmpty().contains(
+                "ReadMA(200, 1, MODE_EMA)"
+            )
+        )
+    }
+
+    @Test
+    fun generatedMqlIncludesRiskSpreadPositionAndBufferGuards() {
+        val artifact = Mql5StudioEngine.generate(spec())
+        val source = artifact.source
+
+        assertTrue(source.contains("#include <Trade/Trade.mqh>"))
+        assertTrue(source.contains("CalculateRiskVolume"))
+        assertTrue(source.contains("SpreadOk"))
+        assertTrue(source.contains("PositionSelect(_Symbol)"))
+        assertTrue(source.contains("CopyBuffer"))
+        assertTrue(source.contains("IndicatorRelease"))
+        assertTrue(source.contains("IsNewBar"))
+        assertTrue(
+            artifact.findings.none {
+                it.code == "MQL5_RISK_CHECK_MISSING" ||
+                    it.code == "MQL5_SPREAD_FILTER_REVIEW" ||
+                    it.code == "MQL5_DUPLICATE_POSITION_REVIEW"
+            }
+        )
     }
 
     @Test
