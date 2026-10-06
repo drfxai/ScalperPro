@@ -35,3 +35,10 @@ These secondary items are intentionally behind Neural Galaxy, Scalper AI and Qua
 
 TradingView Lightweight Charts Android remains configured with
 `attributionLogo = true`; attribution must remain visible in release builds.
+
+- The new Strategy Specification Backtest Lab in PR #8 uses a deterministic synthetic research
+  dataset until a production historical candle provider is connected.
+- Internal expression support is intentionally bounded to explicit deterministic constructs
+  (common OHLC comparisons, EMA/SMA/RSI/ATR, boolean composition and crossover/crossunder).
+  Unsupported structure/custom/trailing rules are blocked instead of approximated.
+- Internal backtest results are not labeled TradingView Strategy Tester results.
