@@ -228,6 +228,10 @@ private fun HomeScreen(
 ) {
     var selectedNode by remember { mutableStateOf("SCALPER AI CORE") }
     var prompt by remember { mutableStateOf("") }
+    var autoOrbit by remember { mutableStateOf(true) }
+    var galaxyView by remember {
+        mutableStateOf<GalaxyGraphView?>(null)
+    }
 
     fun openSelectedNode() {
         when {
@@ -275,7 +279,18 @@ private fun HomeScreen(
             factory = { context ->
                 GalaxyGraphView(context) { node ->
                     selectedNode = node
+                }.also { view ->
+                    galaxyView = view
+                    view.setAutoOrbit(
+                        autoOrbit
+                    )
                 }
+            },
+            update = { view ->
+                galaxyView = view
+                view.setAutoOrbit(
+                    autoOrbit
+                )
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -342,9 +357,40 @@ private fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            "AUTO ORBIT: ON",
+                            "AUTO ORBIT: " +
+                                if (autoOrbit) {
+                                    "ON"
+                                } else {
+                                    "PAUSED"
+                                },
                             color = Color(0xFF8DE8FA)
                         )
+                        TextButton(
+                            onClick = {
+                                autoOrbit =
+                                    !autoOrbit
+                                galaxyView
+                                    ?.setAutoOrbit(
+                                        autoOrbit
+                                    )
+                            }
+                        ) {
+                            Text(
+                                if (autoOrbit) {
+                                    "Pause"
+                                } else {
+                                    "Play"
+                                }
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                galaxyView
+                                    ?.resetCamera()
+                            }
+                        ) {
+                            Text("Reset")
+                        }
                         TextButton(
                             onClick = {
                                 prompt = "Open " + selectedNode
