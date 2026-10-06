@@ -60,7 +60,8 @@ credentials, certificates and private keys.
 - SP-PRIO-T14 Home core-cluster shortcuts — IMPLEMENTED
 - SP-PRIO-T15 Home AI prompt handoff — IMPLEMENTED
 - SP-PRIO-T16 Damped XYZ inertia + user pause/play/reset orbit controls — IMPLEMENTED
-- SP-PRIO-T17 Physical-device FPS/gesture/fallback validation — PENDING_DEVICE
+- SP-PRIO-T17 Purpose-designed light/dark Galaxy palettes — IMPLEMENTED
+- SP-PRIO-T18 Physical-device FPS/gesture/fallback validation — PENDING_DEVICE
 
 ## Scalper AI
 
