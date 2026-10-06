@@ -124,22 +124,19 @@ the TradingView compiler and it does not simulate TradingView strategy orders.
 
 Generated MQL5 remains STATIC_ANALYZED until a real MetaEditor worker returns a compile result.
 
-## Current branch / PR
+## Merge / release status
 
-Branch:
-`codex/complete-ai-quantlab-core`
-
-PR:
-#7 — Complete Scalper AI and advanced Quant Lab core
-
-Current status:
-TESTING
+- PR #7 — Complete Scalper AI and advanced Quant Lab core — MERGED
+- PR #7 final Android CI — PASSED
+- Main Android CI after merge — PASSED
+- Main merged commit: `b8817a32485f4d1bdfac5e23a480821ff4632486`
+- V1.0.0 release asset refresh — IN_PROGRESS
 
 ## Exact next action
 
-1. Run the latest PR #7 Android unit tests, lint and installable APK build.
-2. Fix every CI failure; do not merge a red build.
-3. When CI is green, merge PR #7.
-4. Verify Android CI again on `main`.
-5. Perform physical-device Neural Galaxy + Quant Lab testing.
+1. Rebuild and refresh the V1.0.0 GitHub Release from the merged core.
+2. Verify release unit tests, lint, installable debug APK and unsigned release APK.
+3. Verify the refreshed SHA256SUMS and asset timestamps.
+4. Perform physical-device Neural Galaxy + Quant Lab validation.
+5. Keep live AI disabled until the trusted HTTPS gateway is deployed/configured.
 6. Only after the AI/creation core is stable, resume News/Markets/Education completion.

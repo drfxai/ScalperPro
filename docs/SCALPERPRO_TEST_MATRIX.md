@@ -3,9 +3,11 @@
 | Area | Test | Status |
 |---|---|---|
 | Baseline | Main Android CI at c76ff246 | PASSED |
-| Current PR | Android unit tests | CI_RUNNING |
-| Current PR | Android lint | CI_RUNNING |
-| Current PR | Installable debug APK build | CI_RUNNING |
+| Core merge | Main Android CI at b8817a3 | PASSED |
+| Release refresh | V1.0.0 validation/build | RUNNING |
+| PR #7 | Android unit tests | PASSED |
+| PR #7 | Android lint | PASSED |
+| PR #7 | Installable debug APK build | PASSED |
 | Galaxy | OpenGL ES renderer initializes | PENDING_DEVICE |
 | Galaxy | Default clockwise Y auto-orbit | IMPLEMENTED / PENDING_DEVICE |
 | Galaxy | X/Y drag, pinch zoom, Z twist | IMPLEMENTED / PENDING_DEVICE |
