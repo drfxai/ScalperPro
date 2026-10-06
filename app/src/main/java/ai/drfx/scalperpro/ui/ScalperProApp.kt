@@ -54,6 +54,8 @@ internal enum class Destination {
     Risk,
     Journal,
     Learn,
+    Search,
+    Settings,
     About
 }
 
@@ -169,6 +171,12 @@ fun ScalperProApp() {
                                 }
                             }
                         )
+                        Destination.Search -> SearchScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Settings -> SettingsScreen {
+                            destination = Destination.Home
+                        }
                         Destination.About -> AboutScreen {
                             destination = Destination.Home
                         }
@@ -222,6 +230,16 @@ private fun HomeScreen(
                     )
                 }
                 Row {
+                    TextButton(
+                        onClick = { onNavigate(Destination.Search) }
+                    ) {
+                        Text("Search")
+                    }
+                    TextButton(
+                        onClick = { onNavigate(Destination.Settings) }
+                    ) {
+                        Text("Settings")
+                    }
                     TextButton(onClick = onToggleTheme) {
                         Text(if (darkTheme) "Light" else "Dark")
                     }
