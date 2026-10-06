@@ -11,6 +11,7 @@
 | Galaxy | X/Y drag, pinch zoom, Z twist | IMPLEMENTED / PENDING_DEVICE |
 | Galaxy | Damped rotational inertia | IMPLEMENTED / PENDING_DEVICE |
 | Galaxy | Auto-orbit pause/play/reset | IMPLEMENTED / PENDING_DEVICE |
+| Galaxy | Purpose-designed dark/light palettes | IMPLEMENTED / PENDING_DEVICE |
 | Galaxy | AI/Pine/Quant/MQL5 node routing | IMPLEMENTED / PENDING_UI_TEST |
 | Galaxy | Home core-cluster shortcuts | IMPLEMENTED |
 | AI | Specialist workflow planner: indicator | IMPLEMENTED / UNIT_TEST |
