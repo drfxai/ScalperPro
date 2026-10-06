@@ -31,12 +31,20 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk dist/ScalperPro-V1.0.0-installable.apk
           cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ScalperPro-V1.0.0-release-unsigned.apk
           (cd dist && sha256sum *.apk > SHA256SUMS)
+      - name: Move validated release tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f v1.0.0 "$GITHUB_SHA"
+          git push --force origin refs/tags/v1.0.0
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          NOTES="Scalper Pro V1.0.0 by DrFXAi. Includes the live 3D Neural Galaxy home, Scalper AI, AI Indicator/Strategy Builder, Pine Script Quant Lab, in-app chart/runtime testing, deterministic strategy/risk foundations, and secure Gemini / 9Router gateway architecture. The installable APK uses CI debug signing; the release APK is unsigned until a persistent production signing key is configured."
           if gh release view v1.0.0 >/dev/null 2>&1; then
             gh release upload v1.0.0 dist/* --clobber
+            gh release edit v1.0.0 --target "$GITHUB_SHA" --title "Scalper Pro V1.0.0" --notes "$NOTES"
           else
-            gh release create v1.0.0 dist/*               --target "$GITHUB_SHA"               --title "Scalper Pro V1.0.0"               --notes "Scalper Pro V1.0.0 by DrFXAi. Includes the live 3D Neural Galaxy home, Scalper AI, AI Indicator/Strategy Builder, Pine Script Quant Lab, in-app chart/runtime testing, deterministic strategy/risk foundations, and secure Gemini / 9Router gateway architecture. The installable APK uses CI debug signing; the release APK is unsigned until a persistent production signing key is configured."
+            gh release create v1.0.0 dist/* --target "$GITHUB_SHA" --title "Scalper Pro V1.0.0" --notes "$NOTES"
           fi

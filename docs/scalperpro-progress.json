@@ -17,9 +17,9 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-CI-03",
-  "currentTask": "SP-P25-REFRESH-V1",
-  "currentStatus": "RELEASE_BUILD",
+  "lastCompletedTask": "SP-P25-REFRESH-V1",
+  "currentTask": "SP-P25-ALIGN-TAG",
+  "currentStatus": "RELEASE_FINALIZATION",
   "workingBranch": "main",
   "pullRequest": 7,
   "implementedInCurrentWave": [
@@ -37,7 +37,7 @@
     "Interactive strategy archetype/tool/timeframe reference selectors"
   ],
   "knownBlockers": [
-    "V1.0.0 release assets are being rebuilt from the merged AI/Quant Lab core",
+    "Final V1.0.0 tag/release metadata alignment is running",
     "Trusted AI Gateway URL/provider deployment is not configured in the default build",
     "TradingView external Pine compilation is unavailable",
     "MetaEditor compile worker is not configured",
@@ -45,5 +45,5 @@
     "Physical-device Neural Galaxy/Quant Lab validation is pending",
     "Production Android signing key is not configured"
   ],
-  "exactNextAction": "Refresh V1.0.0 release assets from main, verify release workflow and checksums, then perform physical-device Neural Galaxy/Quant Lab validation."
+  "exactNextAction": "Move v1.0.0 to the validated merged build through the release workflow, verify release metadata/assets, then perform physical-device core validation."
 }

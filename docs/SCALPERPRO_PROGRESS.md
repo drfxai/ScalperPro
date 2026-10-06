@@ -130,13 +130,22 @@ Generated MQL5 remains STATIC_ANALYZED until a real MetaEditor worker returns a 
 - PR #7 final Android CI — PASSED
 - Main Android CI after merge — PASSED
 - Main merged commit: `b8817a32485f4d1bdfac5e23a480821ff4632486`
-- V1.0.0 release asset refresh — IN_PROGRESS
+- V1.0.0 release asset refresh — PASSED
+
+## Release refresh verification
+
+- Release validation — PASSED
+- Installable APK build — PASSED
+- Unsigned release APK build — PASSED
+- Release upload — PASSED
+- Refreshed installable APK SHA-256 — `f591070754bb232b8563e60f9f44c0554594b065649bf065059321e74d17d218`
+- Refreshed unsigned APK SHA-256 — `a6d7fa233105dbafccc2833d21d0b4b93124d0264b049ae9eb918d9e1de41dee`
+- Release metadata/tag alignment — FINAL_REFRESH_RUNNING
 
 ## Exact next action
 
-1. Rebuild and refresh the V1.0.0 GitHub Release from the merged core.
-2. Verify release unit tests, lint, installable debug APK and unsigned release APK.
-3. Verify the refreshed SHA256SUMS and asset timestamps.
-4. Perform physical-device Neural Galaxy + Quant Lab validation.
-5. Keep live AI disabled until the trusted HTTPS gateway is deployed/configured.
-6. Only after the AI/creation core is stable, resume News/Markets/Education completion.
+1. Align the public `v1.0.0` tag/release target with this validated merged build.
+2. Verify final release assets and source-code tag alignment.
+3. Perform physical-device Neural Galaxy + Quant Lab validation.
+4. Keep live AI disabled until the trusted HTTPS gateway is deployed/configured.
+5. Only after the AI/creation core is stable, resume News/Markets/Education completion.
