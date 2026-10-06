@@ -105,6 +105,22 @@
             })
           };
         }),
+        shapeSeries: (program.shapes || []).slice(0, 8).map(function (shape, index) {
+          var resolved = (result.shapeCols || [])[index];
+          var hits = (result.shapes[index] || []).slice(-500);
+          return {
+            title: String(shape.title || ("Signal " + (index + 1))),
+            below: shape.below !== false,
+            color: String(resolved || shape.color || "#F5B942"),
+            glyph: String(shape.glyph || "▲"),
+            text: String(shape.text || ""),
+            indices: hits.map(function (value) {
+              return Number(value);
+            }).filter(function (value) {
+              return isFinite(value) && value >= 0;
+            })
+          };
+        }),
         runtimeMs: runtimeMs,
         engine: "DrFXQuant Quant Coder"
       });
