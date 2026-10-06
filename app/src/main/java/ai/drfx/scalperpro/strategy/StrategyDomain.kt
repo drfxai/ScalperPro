@@ -81,7 +81,7 @@ data class NewsFilterDefinition(
 data class ExecutionAssumptions(
     val commissionPercent: Double = 0.04,
     val slippageTicks: Int = 1,
-    val processOrdersOnClose: Boolean = true
+    val processOrdersOnClose: Boolean = false
 ) {
     init {
         require(commissionPercent >= 0.0)
