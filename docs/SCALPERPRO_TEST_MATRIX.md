@@ -39,3 +39,16 @@
 | Home | Z twist | IMPLEMENTED / PENDING_DEVICE |
 | AI | Gemini gateway path | PENDING_DEPLOYMENT |
 | AI | 9Router Smart/Combo path | PENDING_DEPLOYMENT |
+| Priority AI | Agent workflow planner routes indicator build specialists | PENDING_UNIT_TEST |
+| Priority AI | Agent workflow planner routes strategy build specialists | PENDING_UNIT_TEST |
+| Indicator | Valid Indicator Specification generates Pine v6 | PENDING_UNIT_TEST |
+| Indicator | Invalid Indicator Specification returns validation findings | PENDING_UNIT_TEST |
+| Quant Runtime | Local engine asset loads | CI / DEVICE_PENDING |
+| Quant Runtime | DrFXQuant Pine smoke compile/run report | DEVICE_PENDING |
+| Quant Runtime | Unsupported constructs are surfaced, not hidden | DEVICE_PENDING |
+| Chart Lab | TradingView Lightweight Charts 5.2.0 resolves/builds | CI_PENDING |
+| Chart Lab | Candlestick + EMA sample renders | DEVICE_PENDING |
+| Galaxy | AI/Pine/Quant priority clusters render | DEVICE_PENDING |
+| Galaxy | Point-sprite glow renders without corrupting line edges | DEVICE_PENDING |
+| Navigation | Selected AI/Pine/Strategy/Chart/MQL5 nodes route correctly | PENDING_UI_TEST |
+

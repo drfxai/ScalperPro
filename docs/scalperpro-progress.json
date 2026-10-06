@@ -3,33 +3,43 @@
   "versionName": "1.0.0",
   "versionCode": 1,
   "repository": "DrFXAi/ScalperPro",
-  "lastCompletedTask": "SP-P23-T03",
-  "currentTask": "SP-P24-T06",
+  "priority": [
+    "Neural Galaxy",
+    "Scalper AI specialist team",
+    "Indicator Forge",
+    "Pine Script Strategy Lab",
+    "In-app chart/runtime testing",
+    "MQL5/MetaTrader translation"
+  ],
+  "sourceReuse": {
+    "repository": "DrFXAi/DrFXQuant",
+    "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
+    "quantCoderAsset": "app/src/main/assets/quantlab/quant-coder.js",
+    "securityBoundary": "No wallets, payments, autotrade, private keys, certificates or secrets are migrated."
+  },
+  "lastCompletedTask": "SP-PRIO-T05",
+  "currentTask": "SP-PRIO-CI-01",
   "currentStatus": "TESTING",
-  "workingBranch": "codex/phase-15-21-platform-hardening",
-  "exactNextAction": "Open PR, run unit tests/lint/debug build for phases 15-23 foundations, fix failures, merge only when green, then continue comprehensive testing and remaining production integrations.",
+  "workingBranch": "codex/priority-ai-galaxy-pine-lab",
+  "exactNextAction": "Open PR to trigger Android CI; fix compile/lint/test failures; then add focused tests and connect Quant Runtime plot outputs to the TradingView chart sandbox.",
   "implementedInCurrentWave": [
-    "Global local search contracts and UI",
-    "Notification preferences and quiet-hours delivery policy",
-    "Structured diagnostics with redaction and bounded buffer",
-    "Diagnostics viewer and navigation instrumentation",
-    "Security upload/secret-reference contracts and threat model",
-    "Bounded retry/performance policy",
-    "Offline/degraded cache freshness contracts",
-    "Gemini/9Router provider dashboard state and settings UI",
-    "Internal admin source/feature-flag configuration foundation"
+    "AI/Pine/Quant-focused neural galaxy clusters and glow rendering",
+    "functional galaxy node routing",
+    "Hyperion-inspired specialist AI workflow planner",
+    "modular Quant Lab tool/strategy/timeframe catalog",
+    "Indicator Specification domain and Pine v6 generator foundation",
+    "DrFXQuant Quant Coder reused locally through an Android WebView bridge",
+    "Quant Runtime diagnostics",
+    "TradingView Lightweight Charts Android chart sandbox",
+    "rebuilt AI Builder / Indicator / Strategy / Pine / Chart / MQL5 Lab UI"
   ],
   "knownBlockers": [
-    "Production signing secret not configured",
-    "Live market provider not configured",
-    "Licensed news/economic-calendar provider not configured",
-    "Live signal transport/provider not configured",
-    "AI gateway not yet deployed",
-    "Notification/DataStore persistence not implemented",
-    "Chart Vision multimodal gateway submission not configured",
-    "Pine/MQL external compile verification not configured",
-    "Historical-data provider and Strategy Specification expression interpreter not configured",
-    "Journal encrypted Room persistence and account sync not implemented",
-    "Persistent redacted diagnostics export not implemented"
+    "Current priority branch requires CI validation before merge",
+    "Trusted AI gateway is not deployed/configured for live specialist execution",
+    "Quant Runtime plot/shape output is not yet mapped to chart series",
+    "TradingView external Pine compilation is not available",
+    "MetaEditor compile worker is not configured",
+    "Production historical-data provider is not connected",
+    "Production Android signing secret is not configured"
   ]
 }

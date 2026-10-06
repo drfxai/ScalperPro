@@ -120,7 +120,7 @@ fun ScalperProApp() {
                                 selected = destination == target,
                                 onClick = {
                                     if (target == Destination.Lab) {
-                                        labMode = LabMode.SPECIFICATION
+                                        labMode = LabMode.AI_BUILDER
                                     }
                                     destination = target
                                 },
@@ -215,6 +215,43 @@ private fun HomeScreen(
     var selectedNode by remember { mutableStateOf("SCALPER AI CORE") }
     var prompt by remember { mutableStateOf("") }
 
+    fun openSelectedNode() {
+        when {
+            selectedNode.contains("Pine", ignoreCase = true) ||
+                selectedNode.contains("Indicator", ignoreCase = true) ||
+                selectedNode.contains("Repaint", ignoreCase = true) ->
+                onOpenLab(LabMode.PINE)
+
+            selectedNode.contains("Strategy", ignoreCase = true) ||
+                selectedNode.contains("Pattern", ignoreCase = true) ->
+                onOpenLab(LabMode.SPECIFICATION)
+
+            selectedNode.contains("Chart", ignoreCase = true) ||
+                selectedNode.contains("Runtime", ignoreCase = true) ->
+                onOpenLab(LabMode.CHART)
+
+            selectedNode.contains("MQL5", ignoreCase = true) ||
+                selectedNode.contains("MetaTrader", ignoreCase = true) ||
+                selectedNode.contains("EA", ignoreCase = true) ->
+                onOpenLab(LabMode.MQL5)
+
+            selectedNode.contains("AI", ignoreCase = true) ||
+                selectedNode.contains("Planner", ignoreCase = true) ||
+                selectedNode.contains("Architect", ignoreCase = true) ->
+                onOpenLab(LabMode.AI_BUILDER)
+
+            selectedNode.contains("News", ignoreCase = true) ->
+                onNavigate(Destination.News)
+
+            selectedNode.contains("Market", ignoreCase = true) ||
+                selectedNode.contains("Gold", ignoreCase = true) ||
+                selectedNode.contains("Forex", ignoreCase = true) ->
+                onNavigate(Destination.Markets)
+
+            else -> onNavigate(Destination.AI)
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(Color(0xFF05060A))) {
         AndroidView(
             factory = { context ->
@@ -282,10 +319,23 @@ private fun HomeScreen(
                         "Selected: " + selectedNode,
                         color = Color.White
                     )
-                    Text(
-                        "AUTO ORBIT: ON",
-                        color = Color(0xFF8DE8FA)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            "AUTO ORBIT: ON",
+                            color = Color(0xFF8DE8FA)
+                        )
+                        TextButton(
+                            onClick = {
+                                prompt = "Open " + selectedNode
+                                openSelectedNode()
+                            }
+                        ) {
+                            Text("Open")
+                        }
+                    }
                 }
             }
         }
@@ -301,30 +351,28 @@ private fun HomeScreen(
             ) {
                 items(
                     listOf(
-                        "Analyze Chart",
-                        "Build Strategy",
-                        "Generate Pine",
+                        "AI Builder",
+                        "Indicator Forge",
+                        "Strategy Forge",
+                        "Pine Lab",
+                        "Chart Lab",
                         "Generate MQL5",
-                        "Backtest",
-                        "Risk Manager",
-                        "Journal",
-                        "News Summary",
-                        "Live Signals"
+                        "Analyze Chart",
+                        "News Summary"
                     )
                 ) { action ->
                     AssistChip(
                         onClick = {
                             prompt = action
                             when (action) {
-                                "Analyze Chart" -> onNavigate(Destination.ChartVision)
-                                "Build Strategy" -> onOpenLab(LabMode.SPECIFICATION)
-                                "Generate Pine" -> onOpenLab(LabMode.PINE)
+                                "AI Builder" -> onOpenLab(LabMode.AI_BUILDER)
+                                "Indicator Forge" -> onOpenLab(LabMode.INDICATOR)
+                                "Strategy Forge" -> onOpenLab(LabMode.SPECIFICATION)
+                                "Pine Lab" -> onOpenLab(LabMode.PINE)
+                                "Chart Lab" -> onOpenLab(LabMode.CHART)
                                 "Generate MQL5" -> onOpenLab(LabMode.MQL5)
-                                "Backtest" -> onNavigate(Destination.Backtest)
-                                "Risk Manager" -> onNavigate(Destination.Risk)
-                                "Journal" -> onNavigate(Destination.Journal)
+                                "Analyze Chart" -> onNavigate(Destination.ChartVision)
                                 "News Summary" -> onNavigate(Destination.News)
-                                "Live Signals" -> onNavigate(Destination.Signals)
                                 else -> onNavigate(Destination.AI)
                             }
                         },
