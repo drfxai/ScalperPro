@@ -24,3 +24,9 @@
   Strategy Specification expression interpreter are pending.
 - Security threat modeling is documented, but backend authentication/authorization,
   production rate limiting and server-side upload validation still require implementation.
+- The current AI/Pine/Quant priority branch is not merged until Android CI validates the new TradingView chart dependency, renderer, local Quant Coder WebView bridge and rebuilt Lab UI.
+- The reused DrFXQuant Quant Coder is a compatibility/runtime engine, not the TradingView compiler and not a broker/order simulator.
+- Quant Runtime plot/shape arrays are not yet wired into the in-app chart; the chart currently renders deterministic sample candles plus a sample EMA.
+- Scalper AI specialist workflow planning is implemented locally, but staged live agent execution still requires the trusted AI Gateway.
+- TradingView Lightweight Charts attribution/NOTICE must be surfaced in the user-facing app before release.
+
