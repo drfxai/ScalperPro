@@ -38,8 +38,8 @@ object PineIndicatorGenerator {
 
             specification.inputs.forEach { input ->
                 val variable = inputVariable(input.id)
-                val group = input.group?.let { ", group=\\\"" + escape(it) + "\\\"" }.orEmpty()
-                val tooltip = input.tooltip?.let { ", tooltip=\\\"" + escape(it) + "\\\"" }.orEmpty()
+                val group = input.group?.let { ", group=\"" + escape(it) + "\"" }.orEmpty()
+                val tooltip = input.tooltip?.let { ", tooltip=\"" + escape(it) + "\"" }.orEmpty()
                 val range = buildString {
                     input.minValue?.let { append(", minval=$it") }
                     input.maxValue?.let { append(", maxval=$it") }
@@ -47,13 +47,13 @@ object PineIndicatorGenerator {
 
                 val declaration = when (input.type.lowercase()) {
                     "float" ->
-                        "$variable = input.float(${input.defaultValue}, \\\"${escape(input.title)}\\\"$range$group$tooltip)"
+                        "$variable = input.float(${input.defaultValue}, \"${escape(input.title)}\"$range$group$tooltip)"
                     "bool" ->
-                        "$variable = input.bool(${input.defaultValue}, \\\"${escape(input.title)}\\\"$group$tooltip)"
+                        "$variable = input.bool(${input.defaultValue}, \"${escape(input.title)}\"$group$tooltip)"
                     "string" ->
-                        "$variable = input.string(\\\"${escape(input.defaultValue)}\\\", \\\"${escape(input.title)}\\\"$group$tooltip)"
+                        "$variable = input.string(\"${escape(input.defaultValue)}\", \"${escape(input.title)}\"$group$tooltip)"
                     else ->
-                        "$variable = input.int(${input.defaultValue}, \\\"${escape(input.title)}\\\"$range$group$tooltip)"
+                        "$variable = input.int(${input.defaultValue}, \"${escape(input.title)}\"$range$group$tooltip)"
                 }
                 appendLine(declaration)
             }
