@@ -56,7 +56,7 @@ class GalaxyGraphView(
         setEGLContextClientVersion(3)
         setRenderer(galaxyRenderer)
         renderMode = RENDERMODE_CONTINUOUSLY
-        preserveEGLContextOnPause = true
+        setPreserveEGLContextOnPause(true)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
