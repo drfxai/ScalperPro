@@ -52,7 +52,7 @@ class StrategySpecificationTest {
             symbol = "EURUSD",
             primaryTimeframe = "1h",
             entryConditions = listOf(
-                StrategyCondition("Always", "true")
+                StrategyCondition(description = "Always", expression = "true")
             ),
             session = null,
             risk = StrategyRisk(riskPercentPerTrade = 25.0),
