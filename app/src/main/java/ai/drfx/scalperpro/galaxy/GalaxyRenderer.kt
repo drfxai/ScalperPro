@@ -65,6 +65,11 @@ class GalaxyRenderer(
     private var autoYaw = 0f
     private var zoom = 1f
     private var userActiveUntil = 0L
+    private var lastInteractionAt = 0L
+    private var autoOrbitEnabled = true
+    private var velocityPitch = 0f
+    private var velocityYaw = 0f
+    private var velocityRoll = 0f
     private var lastFrameNanos = 0L
 
     override fun onSurfaceCreated(
@@ -113,7 +118,63 @@ class GalaxyRenderer(
             ).toFloat().coerceIn(0f, 0.05f)
         lastFrameNanos = nowNanos
 
-        if (SystemClock.uptimeMillis() > userActiveUntil) {
+        val nowMillis =
+            SystemClock.uptimeMillis()
+
+        if (
+            nowMillis - lastInteractionAt >
+                70L
+        ) {
+            pitch =
+                (
+                    pitch +
+                        velocityPitch *
+                        dt
+                    ).coerceIn(
+                    -80f,
+                    80f
+                )
+            yaw += velocityYaw * dt
+            roll += velocityRoll * dt
+
+            val damping =
+                (1f - 4.8f * dt)
+                    .coerceIn(
+                        0f,
+                        1f
+                    )
+
+            velocityPitch *= damping
+            velocityYaw *= damping
+            velocityRoll *= damping
+
+            if (
+                kotlin.math.abs(
+                    velocityPitch
+                ) < 0.02f
+            ) {
+                velocityPitch = 0f
+            }
+            if (
+                kotlin.math.abs(
+                    velocityYaw
+                ) < 0.02f
+            ) {
+                velocityYaw = 0f
+            }
+            if (
+                kotlin.math.abs(
+                    velocityRoll
+                ) < 0.02f
+            ) {
+                velocityRoll = 0f
+            }
+        }
+
+        if (
+            autoOrbitEnabled &&
+            nowMillis > userActiveUntil
+        ) {
             autoYaw -= 2.35f * dt
         }
 
@@ -224,19 +285,59 @@ class GalaxyRenderer(
         deltaPitch: Float,
         deltaYaw: Float
     ) {
-        pitch = (pitch + deltaPitch).coerceIn(-80f, 80f)
+        pitch =
+            (pitch + deltaPitch)
+                .coerceIn(-80f, 80f)
         yaw += deltaYaw
+
+        velocityPitch =
+            deltaPitch * 8.5f
+        velocityYaw =
+            deltaYaw * 8.5f
+
         markInteraction()
     }
 
     fun twistBy(delta: Float) {
         roll += delta
+        velocityRoll =
+            delta * 8.0f
         markInteraction()
     }
 
     fun zoomBy(scaleFactor: Float) {
-        zoom = (zoom * scaleFactor).coerceIn(0.62f, 2.25f)
+        zoom =
+            (zoom * scaleFactor)
+                .coerceIn(
+                    0.62f,
+                    2.25f
+                )
         markInteraction()
+    }
+
+    fun setAutoOrbit(
+        enabled: Boolean
+    ) {
+        autoOrbitEnabled = enabled
+
+        if (!enabled) {
+            velocityPitch = 0f
+            velocityYaw = 0f
+            velocityRoll = 0f
+        }
+    }
+
+    fun resetView() {
+        pitch = -10f
+        yaw = 0f
+        roll = 0f
+        autoYaw = 0f
+        zoom = 1f
+        velocityPitch = 0f
+        velocityYaw = 0f
+        velocityRoll = 0f
+        userActiveUntil = 0L
+        lastInteractionAt = 0L
     }
 
     fun selectAt(
@@ -297,8 +398,12 @@ class GalaxyRenderer(
     }
 
     private fun markInteraction() {
+        val now =
+            SystemClock.uptimeMillis()
+
+        lastInteractionAt = now
         userActiveUntil =
-            SystemClock.uptimeMillis() + 3400L
+            now + 3400L
     }
 
     private fun drawBuffer(
