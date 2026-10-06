@@ -59,6 +59,16 @@ class GalaxyGraphView(
         setPreserveEGLContextOnPause(true)
     }
 
+    fun setLightTheme(
+        enabled: Boolean
+    ) {
+        queueEvent {
+            galaxyRenderer.setLightTheme(
+                enabled
+            )
+        }
+    }
+
     fun setAutoOrbit(
         enabled: Boolean
     ) {
