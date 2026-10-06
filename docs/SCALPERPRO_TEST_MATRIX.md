@@ -56,4 +56,7 @@
 | Backtest Lab | unsupported semantics fail closed | IMPLEMENTED / UNIT_TEST |
 | Backtest Lab | repeated Strategy Specification run is deterministic | IMPLEMENTED / UNIT_TEST |
 | Backtest Lab | synthetic dataset clearly labeled non-live | IMPLEMENTED / UI |
-| Backtest Lab | PR #8 Android unit tests/lint/APK | CI_RUNNING |
+| Backtest Lab | PR #8 initial CI | FAILED (compile issue, hotfixed) |
+| Backtest Lab | PR #9 unit tests/lint/APK | PASSED |
+| Backtest Lab | Main CI after PR #9 | PASSED |
+| Release refresh | Backtest Lab V1.0.0 refresh | RUNNING |

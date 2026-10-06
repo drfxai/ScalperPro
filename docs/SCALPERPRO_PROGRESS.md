@@ -149,27 +149,35 @@ Generated MQL5 remains STATIC_ANALYZED until a real MetaEditor worker returns a 
 3. Perform physical-device Neural Galaxy + Quant Lab validation.
 4. Keep live AI disabled until the trusted HTTPS gateway is deployed/configured.
 5. Only after the AI/creation core is stable, resume News/Markets/Education completion.
+  
+## Strategy Specification Backtest integration
 
+- SP-PRIO-T70 Strategy expression engine for EMA/SMA/RSI/ATR/OHLC — COMPLETED
+- SP-PRIO-T71 Boolean AND/OR + crossover/crossunder support — COMPLETED
+- SP-PRIO-T72 Strategy Specification compatibility checker — COMPLETED
+- SP-PRIO-T73 Deterministic Strategy Specification backtest adapter — COMPLETED
+- SP-PRIO-T74 Backtest strategy lifecycle reset/callback contract — COMPLETED
+- SP-PRIO-T75 Synthetic beginner research dataset + explicit costs — COMPLETED
+- SP-PRIO-T76 Backtest metrics / recent-trades Quant Lab UI — COMPLETED
+- SP-PRIO-T77 Unsupported structure/custom/trailing semantics fail closed — COMPLETED
+- SP-PRIO-T78 PR #8 initial merge — MERGED_WITH_COMPILE_ERROR
+- SP-PRIO-T79 PR #9 compile/parser hotfix — COMPLETED
+- SP-PRIO-T80 PR #9 Android unit tests/lint/APK — PASSED
+- SP-PRIO-T81 Main Android CI after hotfix merge — PASSED
+- SP-PRIO-T82 V1.0.0 release refresh with Backtest Lab — RUNNING
 
-## Strategy Specification Backtest integration — PR #8
+Main recovery commit after PR #9:
+`785039e8651f18cd4f51396a65baaf1233596bdd`
 
-- SP-PRIO-T70 Strategy expression engine for EMA/SMA/RSI/ATR/OHLC — IMPLEMENTED
-- SP-PRIO-T71 Boolean AND/OR + crossover/crossunder support — IMPLEMENTED
-- SP-PRIO-T72 Strategy Specification compatibility checker — IMPLEMENTED
-- SP-PRIO-T73 Deterministic Strategy Specification backtest adapter — IMPLEMENTED
-- SP-PRIO-T74 Backtest strategy lifecycle reset/callback contract — IMPLEMENTED
-- SP-PRIO-T75 Synthetic beginner research dataset + explicit costs — IMPLEMENTED
-- SP-PRIO-T76 Backtest metrics / recent-trades Quant Lab UI — IMPLEMENTED
-- SP-PRIO-T77 Unsupported structure/custom/trailing semantics fail closed — IMPLEMENTED
-- SP-PRIO-T78 PR #8 Android CI — TESTING
+The Backtest Lab remains intentionally bounded. Unsupported structure/custom/trailing
+semantics are blocked rather than approximated, and the bundled dataset is explicitly
+synthetic research data rather than live/historical provider data.
 
-Current branch:
-`codex/strategy-backtest-lab`
+## Exact next action
 
-Current PR:
-#8 — Add deterministic Strategy Specification Backtest Lab
+1. Refresh V1.0.0 release assets from the green Backtest-Lab main.
+2. Verify tag/release target and SHA256 assets.
+3. Continue Quant Lab with local historical-data import / robustness tooling.
+4. Physical-device Neural Galaxy + Quant Lab validation remains required.
+5. Live AI remains disabled until the trusted HTTPS gateway is deployed/configured.
 
-Exact next action:
-Run/fix PR #8 unit tests, lint and installable APK build. Merge only when green. After merge,
-verify main CI and then decide whether to refresh V1.0.0 or keep this work for the next
-release checkpoint.

@@ -17,11 +17,11 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-T77",
-  "currentTask": "SP-PRIO-T78",
-  "currentStatus": "TESTING",
-  "workingBranch": "codex/strategy-backtest-lab",
-  "pullRequest": 8,
+  "lastCompletedTask": "SP-PRIO-T81",
+  "currentTask": "SP-PRIO-T82",
+  "currentStatus": "RELEASE_BUILD",
+  "workingBranch": "main",
+  "pullRequest": 9,
   "implementedInCurrentWave": [
     "Android trusted HTTPS client for Scalper AI chat and staged specialist workflows",
     "AI Builder specialist execution UI and Pine handoff",
@@ -42,7 +42,7 @@
     "Beginner-facing Backtest Lab metrics and recent trade list"
   ],
   "knownBlockers": [
-    "PR #8 must pass Android unit tests, lint and APK build before merge",
+    "V1.0.0 release assets are being refreshed from the green Backtest Lab main",
     "Production historical candle provider is not connected",
     "TradingView Strategy Tester equivalence is not claimed",
     "Structure/custom/trailing backtest semantics require explicit deterministic contracts",
@@ -51,5 +51,5 @@
     "MetaEditor compile worker is not configured",
     "Production Android signing key is not configured"
   ],
-  "exactNextAction": "Run/fix PR #8 CI; merge only when green; verify main CI; then continue with production historical-data adapter and physical-device validation."
+  "exactNextAction": "Refresh V1.0.0 release assets, verify tag/assets, then continue Quant Lab with local historical-data import and robustness tooling."
 }
