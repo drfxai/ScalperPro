@@ -24,15 +24,20 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ai.drfx.scalperpro.ai.AiLabExecutionResult
+import ai.drfx.scalperpro.ai.AiRoutingMode
 import ai.drfx.scalperpro.ai.LabTaskType
 import ai.drfx.scalperpro.ai.ScalperAgentTeam
 import ai.drfx.scalperpro.ai.ScalperAgentWorkflowPlanner
+import ai.drfx.scalperpro.ai.ScalperAiGatewayClient
+import ai.drfx.scalperpro.ai.ScalperAiGatewayConfig
 import ai.drfx.scalperpro.code.CodeArtifact
 import ai.drfx.scalperpro.code.Mql5StudioEngine
 import ai.drfx.scalperpro.code.PineIndicatorGenerator
@@ -53,6 +58,7 @@ import ai.drfx.scalperpro.strategy.StrategySpecification
 import ai.drfx.scalperpro.strategy.StrategySpecificationValidator
 import ai.drfx.scalperpro.strategy.TakeProfitDefinition
 import ai.drfx.scalperpro.strategy.TakeProfitMethod
+import kotlinx.coroutines.launch
 
 internal enum class LabMode {
     AI_BUILDER,
@@ -70,6 +76,8 @@ internal fun LabScreen(
 ) {
     val context = LocalContext.current
     val quantEngine = remember { QuantCoderEngine(context) }
+    val aiGatewayClient = remember { ScalperAiGatewayClient() }
+    val coroutineScope = rememberCoroutineScope()
 
     DisposableEffect(quantEngine) {
         onDispose { quantEngine.destroy() }
@@ -135,6 +143,9 @@ internal fun LabScreen(
         )
     }
     var taskType by remember { mutableStateOf(LabTaskType.INDICATOR_BUILD) }
+    var aiRoutingMode by remember { mutableStateOf(AiRoutingMode.GEMINI_DIRECT) }
+    var aiRunning by remember { mutableStateOf(false) }
+    var aiExecution by remember { mutableStateOf<AiLabExecutionResult?>(null) }
     var pineEditor by remember { mutableStateOf(indicatorPine.source) }
     var runtimeReport by remember { mutableStateOf<QuantRuntimeReport?>(null) }
 
@@ -192,6 +203,72 @@ internal fun LabScreen(
                 onPromptChange = { builderPrompt = it },
                 taskType = taskType,
                 onTaskTypeChange = { taskType = it },
+                routingMode = aiRoutingMode,
+                onRoutingModeChange = { aiRoutingMode = it },
+                gatewayConfigured = ScalperAiGatewayConfig.configured,
+                aiRunning = aiRunning,
+                aiExecution = aiExecution,
+                onRunAiTeam = {
+                    aiRunning = true
+                    aiExecution = null
+
+                    coroutineScope.launch {
+                        val result =
+                            aiGatewayClient.runLabWorkflow(
+                                taskType = taskType,
+                                routingMode = aiRoutingMode,
+                                message = builderPrompt,
+                                context =
+                                    "Scalper Pro Quant Lab. " +
+                                        "Beginner-focused educational tool. " +
+                                        "Target Pine Script v6. " +
+                                        "Never claim compile verification without an external compiler result."
+                            )
+
+                        aiExecution = result
+                        aiRunning = false
+
+                        if (
+                            result is
+                                AiLabExecutionResult.Success
+                        ) {
+                            result.workflow.stages
+                                .lastOrNull {
+                                    it.role == "pine"
+                                }
+                                ?.text
+                                ?.let(::extractCodeBlock)
+                                ?.takeIf {
+                                    it.isNotBlank()
+                                }
+                                ?.let {
+                                    pineEditor = it
+                                    runtimeReport = null
+                                }
+                        }
+                    }
+                },
+                onOpenGeneratedPine = {
+                    val result =
+                        aiExecution as?
+                            AiLabExecutionResult.Success
+
+                    val generated =
+                        result
+                            ?.workflow
+                            ?.stages
+                            ?.lastOrNull {
+                                it.role == "pine"
+                            }
+                            ?.text
+                            ?.let(::extractCodeBlock)
+
+                    if (!generated.isNullOrBlank()) {
+                        pineEditor = generated
+                        runtimeReport = null
+                        mode = LabMode.PINE
+                    }
+                },
                 onOpenIndicator = {
                     pineEditor = indicatorPine.source
                     mode = LabMode.INDICATOR
@@ -259,6 +336,13 @@ private fun AiBuilderPanel(
     onPromptChange: (String) -> Unit,
     taskType: LabTaskType,
     onTaskTypeChange: (LabTaskType) -> Unit,
+    routingMode: AiRoutingMode,
+    onRoutingModeChange: (AiRoutingMode) -> Unit,
+    gatewayConfigured: Boolean,
+    aiRunning: Boolean,
+    aiExecution: AiLabExecutionResult?,
+    onRunAiTeam: () -> Unit,
+    onOpenGeneratedPine: () -> Unit,
     onOpenIndicator: () -> Unit,
     onOpenStrategy: () -> Unit
 ) {
@@ -340,6 +424,165 @@ private fun AiBuilderPanel(
         }
 
         item {
+            Text("AI Route", fontWeight = FontWeight.Bold)
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(AiRoutingMode.entries) { mode ->
+                    AssistChip(
+                        onClick = {
+                            onRoutingModeChange(mode)
+                        },
+                        label = {
+                            Text(
+                                when (mode) {
+                                    AiRoutingMode.GEMINI_DIRECT ->
+                                        "Gemini Direct"
+                                    AiRoutingMode.NINE_ROUTER_SMART ->
+                                        "9Router Smart"
+                                    AiRoutingMode.NINE_ROUTER_COMBO ->
+                                        "9Router Combo"
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+
+            Text(
+                if (gatewayConfigured) {
+                    "Trusted AI Gateway: CONFIGURED"
+                } else {
+                    "Trusted AI Gateway: NOT CONFIGURED"
+                },
+                color =
+                    if (gatewayConfigured) {
+                        MaterialTheme.colorScheme.secondary
+                    } else {
+                        MaterialTheme.colorScheme.tertiary
+                    }
+            )
+
+            Text(
+                "Selected route: " + routingMode.name,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+
+        item {
+            Button(
+                enabled =
+                    !aiRunning &&
+                        prompt.isNotBlank(),
+                onClick = onRunAiTeam
+            ) {
+                Text(
+                    if (aiRunning) {
+                        "AI Team Running..."
+                    } else {
+                        "Run AI Specialist Team"
+                    }
+                )
+            }
+        }
+
+        aiExecution?.let { execution ->
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(8.dp)
+                    ) {
+                        when (execution) {
+                            is AiLabExecutionResult.Unavailable -> {
+                                Text(
+                                    "Gateway unavailable",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    execution.reason,
+                                    color =
+                                        MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+
+                            is AiLabExecutionResult.Failure -> {
+                                Text(
+                                    "AI workflow failed",
+                                    fontWeight = FontWeight.Bold,
+                                    color =
+                                        MaterialTheme.colorScheme.error
+                                )
+                                Text(
+                                    execution.code +
+                                        " • " +
+                                        execution.message
+                                )
+                            }
+
+                            is AiLabExecutionResult.Success -> {
+                                Text(
+                                    "AI Specialist Results",
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                execution.workflow.stages
+                                    .forEachIndexed {
+                                            index,
+                                            stage ->
+                                        Text(
+                                            (index + 1).toString() +
+                                                ". " +
+                                                stage.title +
+                                                " • " +
+                                                stage.provider +
+                                                " / " +
+                                                stage.model,
+                                            fontWeight =
+                                                FontWeight.SemiBold
+                                        )
+
+                                        val preview =
+                                            stage.text.take(1_400)
+
+                                        Text(
+                                            preview +
+                                                if (
+                                                    stage.text.length >
+                                                        preview.length
+                                                ) {
+                                                    "…"
+                                                } else {
+                                                    ""
+                                                }
+                                        )
+                                    }
+
+                                if (
+                                    execution.workflow.stages
+                                        .any {
+                                            it.role == "pine"
+                                        }
+                                ) {
+                                    Button(
+                                        onClick =
+                                            onOpenGeneratedPine
+                                    ) {
+                                        Text(
+                                            "Open AI Pine in Lab"
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onOpenIndicator) {
                     Text("Open Indicator Forge")
@@ -352,7 +595,7 @@ private fun AiBuilderPanel(
 
         item {
             Text(
-                "Live multi-agent execution will use the trusted Scalper AI Gateway. The Android app does not store Gemini or 9Router secrets.",
+                "Live multi-agent execution uses the trusted Scalper AI Gateway. The Android app stores no Gemini or 9Router secrets; without a configured HTTPS gateway it remains safely unavailable.",
                 color = MaterialTheme.colorScheme.tertiary
             )
         }
@@ -365,6 +608,25 @@ private fun IndicatorForgePanel(
     onSendToPine: () -> Unit,
     onOpenChart: () -> Unit
 ) {
+    var selectedToolId by remember {
+        mutableStateOf("indicator-forge")
+    }
+    var selectedTimeframe by remember {
+        mutableStateOf("15m")
+    }
+
+    val selectedTool =
+        QuantLabCatalog.tools
+            .firstOrNull {
+                it.id == selectedToolId
+            }
+
+    val timeframe =
+        QuantLabCatalog.timeframes
+            .firstOrNull {
+                it.code == selectedTimeframe
+            }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -410,8 +672,22 @@ private fun IndicatorForgePanel(
                     }
                 ) { tool ->
                     AssistChip(
-                        onClick = { },
-                        label = { Text(tool.title) }
+                        onClick = {
+                            selectedToolId =
+                                tool.id
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedToolId ==
+                                        tool.id
+                                ) {
+                                    "✓ " + tool.title
+                                } else {
+                                    tool.title
+                                }
+                            )
+                        }
                     )
                 }
             }
@@ -420,10 +696,65 @@ private fun IndicatorForgePanel(
         item {
             Text("Timeframes", fontWeight = FontWeight.Bold)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(QuantLabCatalog.timeframes) { timeframe ->
+                items(QuantLabCatalog.timeframes) { item ->
                     AssistChip(
-                        onClick = { },
-                        label = { Text(timeframe.code) }
+                        onClick = {
+                            selectedTimeframe =
+                                item.code
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedTimeframe ==
+                                        item.code
+                                ) {
+                                    "✓ " + item.code
+                                } else {
+                                    item.code
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "Selected Lab Context",
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+                    Text(
+                        selectedTool?.title ?:
+                            "Indicator Forge",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .secondary
+                    )
+                    selectedTool?.let {
+                        Text(it.description)
+                    }
+                    timeframe?.let {
+                        Text(
+                            it.code +
+                                " • " +
+                                it.useCase
+                        )
+                    }
+                    Text(
+                        "Selections are design context; generated code changes only when the underlying Indicator Specification or AI plan changes.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .tertiary
                     )
                 }
             }
@@ -454,6 +785,27 @@ private fun StrategyForgePanel(
     onSendToPine: () -> Unit,
     onOpenChart: () -> Unit
 ) {
+    var selectedArchetypeId by remember {
+        mutableStateOf("trend")
+    }
+    var selectedTimeframe by remember {
+        mutableStateOf(
+            specification.primaryTimeframe
+        )
+    }
+
+    val selectedArchetype =
+        QuantLabCatalog.strategyArchetypes
+            .firstOrNull {
+                it.id == selectedArchetypeId
+            }
+
+    val selectedTf =
+        QuantLabCatalog.timeframes
+            .firstOrNull {
+                it.code == selectedTimeframe
+            }
+
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -504,8 +856,110 @@ private fun StrategyForgePanel(
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(QuantLabCatalog.strategyArchetypes) { item ->
                     AssistChip(
-                        onClick = { },
-                        label = { Text(item.title) }
+                        onClick = {
+                            selectedArchetypeId =
+                                item.id
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedArchetypeId ==
+                                        item.id
+                                ) {
+                                    "✓ " + item.title
+                                } else {
+                                    item.title
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            Text(
+                "Timeframes",
+                fontWeight = FontWeight.Bold
+            )
+            LazyRow(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    QuantLabCatalog.timeframes
+                ) { item ->
+                    AssistChip(
+                        onClick = {
+                            selectedTimeframe =
+                                item.code
+                        },
+                        label = {
+                            Text(
+                                if (
+                                    selectedTimeframe ==
+                                        item.code
+                                ) {
+                                    "✓ " + item.code
+                                } else {
+                                    item.code
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "Strategy Reference",
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+                    selectedArchetype?.let {
+                        Text(
+                            it.title,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .secondary
+                        )
+                        Text(it.summary)
+                        Text(
+                            "Useful tools: " +
+                                it.usefulIndicators
+                                    .joinToString(" • ")
+                        )
+                        Text(
+                            "Caution: " +
+                                it.caution,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .tertiary
+                        )
+                    }
+                    selectedTf?.let {
+                        Text(
+                            "Timeframe: " +
+                                it.code +
+                                " • " +
+                                it.useCase
+                        )
+                    }
+                    Text(
+                        "Reference selections guide planning. The stored Strategy Specification remains the execution source of truth.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .tertiary
                     )
                 }
             }
@@ -659,6 +1113,7 @@ private fun QuantRuntimeReportCard(
             Text(
                 "Plots " + report.plots +
                     " • Shapes " + report.shapes +
+                    " • Labels " + report.labelSeries.size +
                     " • Inputs " + report.inputs.size
             )
             Text(
@@ -740,10 +1195,18 @@ private fun ChartLabPanel(
 
         item {
             Text(
-                if (report?.ok == true && report.plotSeries.isNotEmpty()) {
-                    "Runtime plot series are mapped into this chart. Shape/label primitives are the next renderer step."
+                if (report?.ok == true) {
+                    val markerCount =
+                        report.shapeSeries.sumOf {
+                            it.indices.size
+                        } +
+                            report.labelSeries.size
+
+                    "Runtime plots and " +
+                        markerCount +
+                        " signal/label markers are mapped into the chart. Line, box, fill and advanced drawing primitives remain a later renderer step."
                 } else {
-                    "Run Quant Runtime from Pine Lab first to replace the sample EMA with generated script plot output."
+                    "Run Quant Runtime from Pine Lab first to replace the sample EMA with generated script plot and signal output."
                 },
                 color = MaterialTheme.colorScheme.tertiary
             )
@@ -787,4 +1250,40 @@ private fun CodeArtifactPanel(
             )
         }
     }
+}
+
+
+private fun extractCodeBlock(
+    text: String
+): String {
+    val fenceStart =
+        text.indexOf("```")
+
+    if (fenceStart < 0) {
+        return text.trim()
+    }
+
+    val firstLineEnd =
+        text.indexOf('\n', fenceStart)
+
+    if (firstLineEnd < 0) {
+        return text.trim()
+    }
+
+    val fenceEnd =
+        text.indexOf(
+            "```",
+            firstLineEnd + 1
+        )
+
+    if (fenceEnd < 0) {
+        return text.trim()
+    }
+
+    return text
+        .substring(
+            firstLineEnd + 1,
+            fenceEnd
+        )
+        .trim()
 }

@@ -84,12 +84,18 @@ private val LightScheme = lightColorScheme(
 fun ScalperProApp() {
     var darkTheme by remember { mutableStateOf(true) }
     var destination by remember { mutableStateOf(Destination.Home) }
-    var labMode by remember { mutableStateOf(LabMode.SPECIFICATION) }
+    var labMode by remember { mutableStateOf(LabMode.AI_BUILDER) }
+    var aiDraft by remember { mutableStateOf("") }
     val colors = if (darkTheme) DarkScheme else LightScheme
 
     fun openLab(mode: LabMode) {
         labMode = mode
         destination = Destination.Lab
+    }
+
+    fun openAi(message: String = "") {
+        aiDraft = message
+        destination = Destination.AI
     }
 
     LaunchedEffect(destination) {
@@ -136,6 +142,7 @@ fun ScalperProApp() {
                         Destination.Home -> HomeScreen(
                             onNavigate = { destination = it },
                             onOpenLab = { openLab(it) },
+                            onAskAi = { openAi(it) },
                             darkTheme = darkTheme,
                             onToggleTheme = { darkTheme = !darkTheme },
                             onAbout = { destination = Destination.About }
@@ -150,9 +157,15 @@ fun ScalperProApp() {
                         Destination.Signals -> SignalsScreen {
                             destination = Destination.Home
                         }
-                        Destination.AI -> AiScreen {
-                            destination = Destination.Home
-                        }
+                        Destination.AI -> AiScreen(
+                            onHome = {
+                                destination = Destination.Home
+                            },
+                            initialMessage = aiDraft,
+                            onInitialMessageConsumed = {
+                                aiDraft = ""
+                            }
+                        )
                         Destination.ChartVision -> ChartVisionScreen {
                             destination = Destination.Home
                         }
@@ -208,12 +221,17 @@ fun ScalperProApp() {
 private fun HomeScreen(
     onNavigate: (Destination) -> Unit,
     onOpenLab: (LabMode) -> Unit,
+    onAskAi: (String) -> Unit,
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
     onAbout: () -> Unit
 ) {
     var selectedNode by remember { mutableStateOf("SCALPER AI CORE") }
     var prompt by remember { mutableStateOf("") }
+    var autoOrbit by remember { mutableStateOf(true) }
+    var galaxyView by remember {
+        mutableStateOf<GalaxyGraphView?>(null)
+    }
 
     fun openSelectedNode() {
         when {
@@ -248,16 +266,62 @@ private fun HomeScreen(
                 selectedNode.contains("Forex", ignoreCase = true) ->
                 onNavigate(Destination.Markets)
 
-            else -> onNavigate(Destination.AI)
+            else -> onAskAi(
+                "Help me understand and use " +
+                    selectedNode +
+                    " in Scalper Pro."
+            )
         }
     }
 
-    Box(Modifier.fillMaxSize().background(Color(0xFF05060A))) {
+    val homeBackground =
+        if (darkTheme) {
+            Color(0xFF05060A)
+        } else {
+            Color(0xFFF1F4FB)
+        }
+
+    val homeText =
+        if (darkTheme) {
+            Color.White
+        } else {
+            Color(0xFF121522)
+        }
+
+    val overlaySurface =
+        if (darkTheme) {
+            Color(0x8A111527)
+        } else {
+            Color(0xEAFDFEFF)
+        }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(homeBackground)
+    ) {
         AndroidView(
             factory = { context ->
                 GalaxyGraphView(context) { node ->
                     selectedNode = node
+                }.also { view ->
+                    galaxyView = view
+                    view.setAutoOrbit(
+                        autoOrbit
+                    )
+                    view.setLightTheme(
+                        !darkTheme
+                    )
                 }
+            },
+            update = { view ->
+                galaxyView = view
+                view.setAutoOrbit(
+                    autoOrbit
+                )
+                view.setLightTheme(
+                    !darkTheme
+                )
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -275,7 +339,7 @@ private fun HomeScreen(
                 Column {
                     Text(
                         "Scalper Pro",
-                        color = Color.White,
+                        color = homeText,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
@@ -305,7 +369,7 @@ private fun HomeScreen(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0x8A111527)
+                    containerColor = overlaySurface
                 ),
                 shape = RoundedCornerShape(18.dp)
             ) {
@@ -317,16 +381,47 @@ private fun HomeScreen(
                 ) {
                     Text(
                         "Selected: " + selectedNode,
-                        color = Color.White
+                        color = homeText
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            "AUTO ORBIT: ON",
+                            "AUTO ORBIT: " +
+                                if (autoOrbit) {
+                                    "ON"
+                                } else {
+                                    "PAUSED"
+                                },
                             color = Color(0xFF8DE8FA)
                         )
+                        TextButton(
+                            onClick = {
+                                autoOrbit =
+                                    !autoOrbit
+                                galaxyView
+                                    ?.setAutoOrbit(
+                                        autoOrbit
+                                    )
+                            }
+                        ) {
+                            Text(
+                                if (autoOrbit) {
+                                    "Pause"
+                                } else {
+                                    "Play"
+                                }
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                galaxyView
+                                    ?.resetCamera()
+                            }
+                        ) {
+                            Text("Reset")
+                        }
                         TextButton(
                             onClick = {
                                 prompt = "Open " + selectedNode
@@ -336,6 +431,48 @@ private fun HomeScreen(
                             Text("Open")
                         }
                     }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            LazyRow(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    listOf(
+                        "AI LAB",
+                        "PINE",
+                        "QUANT LAB",
+                        "MQL5"
+                    )
+                ) { cluster ->
+                    AssistChip(
+                        onClick = {
+                            when (cluster) {
+                                "AI LAB" ->
+                                    onOpenLab(
+                                        LabMode.AI_BUILDER
+                                    )
+                                "PINE" ->
+                                    onOpenLab(
+                                        LabMode.PINE
+                                    )
+                                "QUANT LAB" ->
+                                    onOpenLab(
+                                        LabMode.CHART
+                                    )
+                                "MQL5" ->
+                                    onOpenLab(
+                                        LabMode.MQL5
+                                    )
+                            }
+                        },
+                        label = {
+                            Text(cluster)
+                        }
+                    )
                 }
             }
         }
@@ -385,7 +522,12 @@ private fun HomeScreen(
 
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xE8111420)
+                    containerColor =
+                        if (darkTheme) {
+                            Color(0xE8111420)
+                        } else {
+                            Color(0xF7FFFFFF)
+                        }
                 ),
                 shape = RoundedCornerShape(22.dp)
             ) {
@@ -403,7 +545,9 @@ private fun HomeScreen(
                         singleLine = true
                     )
                     TextButton(
-                        onClick = { onNavigate(Destination.AI) }
+                        onClick = {
+                            onAskAi(prompt)
+                        }
                     ) {
                         Text("🎙")
                     }
@@ -413,7 +557,10 @@ private fun HomeScreen(
                         Text("＋")
                     }
                     Button(
-                        onClick = { onNavigate(Destination.AI) }
+                        enabled = prompt.isNotBlank(),
+                        onClick = {
+                            onAskAi(prompt.trim())
+                        }
                     ) {
                         Text("Send")
                     }
