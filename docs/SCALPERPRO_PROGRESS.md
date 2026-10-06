@@ -1,6 +1,6 @@
 # Scalper Pro V1.0.0 Progress
 
-## Current state
+## Completed foundation
 
 - SP-P00-T01 Repository initialized — COMPLETED
 - SP-P00-T02 Android baseline — COMPLETED
@@ -18,21 +18,31 @@
 - SP-P24-T03 Debug APK build — COMPLETED
 - SP-P25-T01 V1.0.0 GitHub Release — COMPLETED
 
-## CI validation
+## Current implementation wave
 
-GitHub Actions run 37501908441 completed successfully:
-
-- unit tests: PASS
-- lint: PASS
-- assembleDebug: PASS
-- APK artifact upload: PASS
+- SP-P04-T01 Strong market instrument/quote/candle models — IMPLEMENTED
+- SP-P04-T02 Replaceable MarketDataProvider interface — IMPLEMENTED
+- SP-P04-T03 MarketRepository and explicit unavailable state — IMPLEMENTED
+- SP-P04-T04 Markets UI uses provider state without fabricated quotes — IMPLEMENTED
+- SP-P04-T05 Market domain tests — IMPLEMENTED
+- SP-P05-T01 News and economic-event domain models — IMPLEMENTED
+- SP-P05-T02 Replaceable NewsDataProvider interface — IMPLEMENTED
+- SP-P05-T03 News/calendar unavailable states and FACT/ASSESSMENT contract — IMPLEMENTED
+- SP-P05-T04 News domain tests — IMPLEMENTED
+- SP-P06-T01 Auditable signal lifecycle model — IMPLEMENTED
+- SP-P06-T02 Immutable signal audit events — IMPLEMENTED
+- SP-P06-T03 Signal lifecycle unit tests — IMPLEMENTED
+- SP-P06-T04 Live signal transport/provider — NOT_STARTED
 
 ## Current constraints
 
 - Production Android signing key is not stored in the repository.
 - The trusted AI Worker must be deployed/configured before live AI requests.
 - Live market/news/signal providers are intentionally not fabricated when unconfigured.
+- Phases 4–6 now have typed provider/domain foundations, but production providers are still pending.
 
 ## Exact next action
 
-GitHub Release v1.0.0 verified. Assets: ScalperPro-V1.0.0-installable.apk, ScalperPro-V1.0.0-release-unsigned.apk, SHA256SUMS. Known product-scope limitations remain documented and are not represented as completed.
+Run CI on branch `codex/phase-04-06-core-data`.
+If unit tests, lint, and debug build pass, merge the branch and continue with
+SP-P07-T01 Strategy Specification v2 and SP-P10-T01 deterministic backtest engine.
