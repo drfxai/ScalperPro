@@ -5,41 +5,42 @@
   "repository": "DrFXAi/ScalperPro",
   "priority": [
     "Neural Galaxy",
-    "Scalper AI specialist team",
+    "Scalper AI",
     "Indicator Forge",
-    "Pine Script Strategy Lab",
-    "In-app chart/runtime testing",
-    "MQL5/MetaTrader translation"
+    "Strategy Forge",
+    "Pine Script Lab",
+    "Quant Runtime and Chart Sandbox",
+    "MQL5 and MetaTrader"
   ],
   "sourceReuse": {
     "repository": "DrFXAi/DrFXQuant",
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
-    "quantCoderAsset": "app/src/main/assets/quantlab/quant-coder.js",
-    "securityBoundary": "No wallets, payments, autotrade, private keys, certificates or secrets are migrated."
+    "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-T05",
-  "currentTask": "SP-PRIO-CI-01",
+  "lastCompletedTask": "SP-PRIO-T67",
+  "currentTask": "SP-PRIO-CI-02",
   "currentStatus": "TESTING",
-  "workingBranch": "codex/priority-ai-galaxy-pine-lab",
-  "exactNextAction": "Open PR to trigger Android CI; fix compile/lint/test failures; then add focused tests and connect Quant Runtime plot outputs to the TradingView chart sandbox.",
+  "workingBranch": "codex/complete-ai-quantlab-core",
+  "pullRequest": 7,
   "implementedInCurrentWave": [
-    "AI/Pine/Quant-focused neural galaxy clusters and glow rendering",
-    "functional galaxy node routing",
-    "Hyperion-inspired specialist AI workflow planner",
-    "modular Quant Lab tool/strategy/timeframe catalog",
-    "Indicator Specification domain and Pine v6 generator foundation",
-    "DrFXQuant Quant Coder reused locally through an Android WebView bridge",
-    "Quant Runtime diagnostics",
-    "TradingView Lightweight Charts Android chart sandbox",
-    "rebuilt AI Builder / Indicator / Strategy / Pine / Chart / MQL5 Lab UI"
+    "Android trusted HTTPS client for Scalper AI chat and staged specialist workflows",
+    "AI Builder specialist execution UI and Pine handoff",
+    "Scalper AI conversational UI",
+    "Home AI draft handoff and Galaxy core shortcuts",
+    "Explicit Strategy Specification short rules and execution assumptions",
+    "Pine strategy sessions, confirmed bars, cooldown, costs, stops, targets and exits",
+    "DrFXQuant plot, plotshape and label output mapping to TradingView chart",
+    "Conservative Pine-condition to MQL5 translator",
+    "MQL5 CTrade scaffold with risk sizing, spread/new-bar/position guards and CopyBuffer helpers"
   ],
   "knownBlockers": [
-    "Current priority branch requires CI validation before merge",
-    "Trusted AI gateway is not deployed/configured for live specialist execution",
-    "Quant Runtime plot/shape output is not yet mapped to chart series",
-    "TradingView external Pine compilation is not available",
+    "PR #7 must pass Android unit tests, lint and APK build before merge",
+    "Trusted AI Gateway URL/provider deployment is not configured in the default build",
+    "TradingView external Pine compilation is unavailable",
     "MetaEditor compile worker is not configured",
-    "Production historical-data provider is not connected",
-    "Production Android signing secret is not configured"
-  ]
+    "Production historical candle provider is not connected",
+    "Physical-device Neural Galaxy/Quant Lab validation is pending",
+    "Production Android signing key is not configured"
+  ],
+  "exactNextAction": "Finish PR #7 CI, repair failures, merge only when green, verify main CI, then perform physical-device core validation before secondary News/Markets/Education work."
 }
