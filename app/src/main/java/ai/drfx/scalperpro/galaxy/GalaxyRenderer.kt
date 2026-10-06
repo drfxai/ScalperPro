@@ -67,6 +67,7 @@ class GalaxyRenderer(
     private var userActiveUntil = 0L
     private var lastInteractionAt = 0L
     private var autoOrbitEnabled = true
+    private var lightTheme = false
     private var velocityPitch = 0f
     private var velocityYaw = 0f
     private var velocityRoll = 0f
@@ -76,7 +77,7 @@ class GalaxyRenderer(
         gl: GL10?,
         config: EGLConfig?
     ) {
-        GLES30.glClearColor(0.004f, 0.006f, 0.018f, 1f)
+        applyBackgroundColor()
         GLES30.glEnable(GLES30.GL_DEPTH_TEST)
         GLES30.glEnable(GLES30.GL_BLEND)
         GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE)
@@ -218,15 +219,102 @@ class GalaxyRenderer(
         val slowPulse = sin(time / 760f)
         val fastPulse = sin(time / 520f)
 
+        val starColor =
+            if (lightTheme) {
+                floatArrayOf(
+                    0.23f,
+                    0.34f,
+                    0.68f,
+                    0.28f
+                )
+            } else {
+                floatArrayOf(
+                    0.45f,
+                    0.62f,
+                    1f,
+                    0.33f
+                )
+            }
+
+        val edgeColor =
+            if (lightTheme) {
+                floatArrayOf(
+                    0.30f,
+                    0.25f,
+                    0.67f,
+                    0.22f
+                )
+            } else {
+                floatArrayOf(
+                    0.34f,
+                    0.38f,
+                    1f,
+                    0.19f
+                )
+            }
+
+        val secondaryColor =
+            if (lightTheme) {
+                floatArrayOf(
+                    0.46f,
+                    0.25f,
+                    0.78f,
+                    0.82f
+                )
+            } else {
+                floatArrayOf(
+                    0.57f,
+                    0.34f,
+                    1f,
+                    0.78f
+                )
+            }
+
+        val primaryColor =
+            if (lightTheme) {
+                floatArrayOf(
+                    0.02f,
+                    0.50f,
+                    0.66f,
+                    0.94f
+                )
+            } else {
+                floatArrayOf(
+                    0.18f,
+                    0.88f,
+                    1f,
+                    0.96f
+                )
+            }
+
+        val coreColor =
+            if (lightTheme) {
+                floatArrayOf(
+                    0.72f,
+                    0.43f,
+                    0.03f,
+                    1f
+                )
+            } else {
+                floatArrayOf(
+                    0.96f,
+                    0.74f,
+                    0.28f,
+                    1f
+                )
+            }
+
         drawBuffer(
             buffer = starBuffer,
             count = starCount,
             mode = GLES30.GL_POINTS,
-            pointSize = 1.45f + slowPulse * 0.18f,
-            r = 0.45f,
-            g = 0.62f,
-            b = 1f,
-            a = 0.33f,
+            pointSize =
+                1.45f +
+                    slowPulse * 0.18f,
+            r = starColor[0],
+            g = starColor[1],
+            b = starColor[2],
+            a = starColor[3],
             pointMode = true
         )
 
@@ -235,10 +323,12 @@ class GalaxyRenderer(
             count = edgeVertexCount,
             mode = GLES30.GL_LINES,
             pointSize = 1f,
-            r = 0.34f,
-            g = 0.38f,
-            b = 1f,
-            a = 0.19f + slowPulse * 0.025f,
+            r = edgeColor[0],
+            g = edgeColor[1],
+            b = edgeColor[2],
+            a =
+                edgeColor[3] +
+                    slowPulse * 0.025f,
             pointMode = false
         )
 
@@ -246,11 +336,13 @@ class GalaxyRenderer(
             buffer = secondaryNodeBuffer,
             count = secondaryNodeCount,
             mode = GLES30.GL_POINTS,
-            pointSize = 7.0f + slowPulse * 0.8f,
-            r = 0.57f,
-            g = 0.34f,
-            b = 1f,
-            a = 0.78f,
+            pointSize =
+                7.0f +
+                    slowPulse * 0.8f,
+            r = secondaryColor[0],
+            g = secondaryColor[1],
+            b = secondaryColor[2],
+            a = secondaryColor[3],
             pointMode = true
         )
 
@@ -258,11 +350,13 @@ class GalaxyRenderer(
             buffer = primaryNodeBuffer,
             count = primaryNodeCount,
             mode = GLES30.GL_POINTS,
-            pointSize = 11.2f + fastPulse * 1.35f,
-            r = 0.18f,
-            g = 0.88f,
-            b = 1f,
-            a = 0.96f,
+            pointSize =
+                11.2f +
+                    fastPulse * 1.35f,
+            r = primaryColor[0],
+            g = primaryColor[1],
+            b = primaryColor[2],
+            a = primaryColor[3],
             pointMode = true
         )
 
@@ -270,11 +364,13 @@ class GalaxyRenderer(
             buffer = coreBuffer,
             count = 1,
             mode = GLES30.GL_POINTS,
-            pointSize = 20f + fastPulse * 2.4f,
-            r = 0.96f,
-            g = 0.74f,
-            b = 0.28f,
-            a = 1f,
+            pointSize =
+                20f +
+                    fastPulse * 2.4f,
+            r = coreColor[0],
+            g = coreColor[1],
+            b = coreColor[2],
+            a = coreColor[3],
             pointMode = true
         )
 
@@ -313,6 +409,13 @@ class GalaxyRenderer(
                     2.25f
                 )
         markInteraction()
+    }
+
+    fun setLightTheme(
+        enabled: Boolean
+    ) {
+        lightTheme = enabled
+        applyBackgroundColor()
     }
 
     fun setAutoOrbit(
@@ -394,6 +497,24 @@ class GalaxyRenderer(
             }
             markInteraction()
             onNodeSelected(nodes[closest].name)
+        }
+    }
+
+    private fun applyBackgroundColor() {
+        if (lightTheme) {
+            GLES30.glClearColor(
+                0.945f,
+                0.956f,
+                0.985f,
+                1f
+            )
+        } else {
+            GLES30.glClearColor(
+                0.004f,
+                0.006f,
+                0.018f,
+                1f
+            )
         }
     }
 
