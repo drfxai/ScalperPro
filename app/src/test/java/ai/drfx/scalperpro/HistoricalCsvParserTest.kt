@@ -75,6 +75,38 @@ class HistoricalCsvParserTest {
     }
 
     @Test
+    fun handlesBomAndDecimalCommaWithSemicolonDelimiter() {
+        val csv =
+            "\uFEFFtime;open;high;low;close\n" +
+                "2025-01-01 00:00;100,5;101,2;99,9;100,8\n" +
+                "2025-01-01 00:15;100,8;102,0;100,1;101,6"
+
+        val result =
+            HistoricalCsvParser.parse(
+                text = csv,
+                symbol = "TEST",
+                timeframe = "15m"
+            )
+
+        assertTrue(
+            result is
+                HistoricalCsvParseResult
+                    .Success
+        )
+
+        val success =
+            result as
+                HistoricalCsvParseResult
+                    .Success
+
+        assertEquals(
+            100.5,
+            success.candles[0].open,
+            0.0001
+        )
+    }
+
+    @Test
     fun rejectsInvalidOhlcBounds() {
         val csv =
             """
