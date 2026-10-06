@@ -5,7 +5,7 @@
 | Baseline | Main Android CI at c76ff246 | PASSED |
 | Core merge | Main Android CI at b8817a3 | PASSED |
 | Release refresh | V1.0.0 validation/build/upload | PASSED |
-| Release refresh | v1.0.0 tag/metadata alignment | RUNNING |
+| Release refresh | v1.0.0 tag/metadata alignment | PASSED |
 | PR #7 | Android unit tests | PASSED |
 | PR #7 | Android lint | PASSED |
 | PR #7 | Installable debug APK build | PASSED |

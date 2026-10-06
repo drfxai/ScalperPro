@@ -2,7 +2,7 @@
 
 ## Core priority blockers
 
-- PR #7 is merged and its Android CI plus post-merge main CI are green. The V1.0.0 release assets are being refreshed from the merged core.
+- PR #7 is merged; Android CI is green; V1.0.0 validation/build/tag alignment/release upload are complete. Physical-device validation remains pending.
 - The trusted Scalper AI Gateway code path exists, but the default Android build has no
   `SCALPER_AI_GATEWAY_BASE_URL`. Live Gemini/9Router calls therefore remain safely unavailable
   until an HTTPS gateway is deployed/configured.

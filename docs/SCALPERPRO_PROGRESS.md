@@ -140,7 +140,7 @@ Generated MQL5 remains STATIC_ANALYZED until a real MetaEditor worker returns a 
 - Release upload — PASSED
 - Refreshed installable APK SHA-256 — `f591070754bb232b8563e60f9f44c0554594b065649bf065059321e74d17d218`
 - Refreshed unsigned APK SHA-256 — `a6d7fa233105dbafccc2833d21d0b4b93124d0264b049ae9eb918d9e1de41dee`
-- Release metadata/tag alignment — FINAL_REFRESH_RUNNING
+- Release metadata/tag alignment — FINALIZED_BY_VALIDATED_WORKFLOW
 
 ## Exact next action
 
