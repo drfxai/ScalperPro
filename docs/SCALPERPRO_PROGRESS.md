@@ -118,15 +118,60 @@ Specification expression interpretation remain separate unfinished tasks.
 - Chart Vision live multimodal gateway submission is pending.
 - Trader Journal encrypted Room persistence/account sync is pending.
 
+## Priority wave — Neural Galaxy + Scalper AI + Quant Lab
+
+Product-owner priority has changed. News, markets and broad education work are deferred
+behind the core AI creation experience.
+
+### DrFXQuant reuse audit
+- SP-PRIO-T01 Inspect DrFXQuant repository + uploaded archive — COMPLETED
+- SP-PRIO-T02 Pin reusable source to DrFXQuant commit caba017c1c1717a3ea5d0a4a7f00bee258cf2da4 — COMPLETED
+- SP-PRIO-T03 Document reuse/security boundary — COMPLETED
+- SP-PRIO-T04 Reuse public/quant-coder.js as local Android asset — IMPLEMENTED
+- SP-PRIO-T05 Exclude wallets/payments/live-autotrade/secrets/certificates — COMPLETED
+
+### Neural Galaxy
+- SP-PRIO-T10 Re-prioritize galaxy clusters around AI / Pine / Quant Lab — IMPLEMENTED
+- SP-PRIO-T11 Add tiered core/primary/secondary node rendering — IMPLEMENTED
+- SP-PRIO-T12 Add radial point-sprite glow and denser galaxy star field — IMPLEMENTED
+- SP-PRIO-T13 Make selected galaxy nodes route into AI/Pine/Chart/MQL5 modules — IMPLEMENTED
+- SP-PRIO-T14 Device frame-rate / gesture / renderer-fallback validation — TESTING_PENDING
+
+### AI specialist team
+- SP-PRIO-T20 Adapt Hyperion supervisor pattern to Scalper AI specialists — IMPLEMENTED
+- SP-PRIO-T21 Requirements Analyst / Indicator Architect / Strategy Strategist roles — IMPLEMENTED
+- SP-PRIO-T22 Pine Engineer / TradingView QA / Quant Runtime Reviewer roles — IMPLEMENTED
+- SP-PRIO-T23 Backtest Analyst / MQL5 Translator / Beginner Coach roles — IMPLEMENTED
+- SP-PRIO-T24 Live staged AI execution through trusted gateway — NOT_STARTED
+
+### Advanced Quant Lab
+- SP-PRIO-T30 Modular tool/strategy/timeframe/Pine-quality catalogs — IMPLEMENTED
+- SP-PRIO-T31 Structured Indicator Specification domain — IMPLEMENTED
+- SP-PRIO-T32 Pine v6 indicator generator foundation — IMPLEMENTED
+- SP-PRIO-T33 Local DrFXQuant Quant Coder WebView bridge — IMPLEMENTED
+- SP-PRIO-T34 Quant Runtime compile/run/diagnostic report — IMPLEMENTED
+- SP-PRIO-T35 TradingView Lightweight Charts Android 5.2.0 dependency — IMPLEMENTED
+- SP-PRIO-T36 Interactive candlestick + EMA chart sandbox — IMPLEMENTED
+- SP-PRIO-T37 Rebuild Lab UI: AI Builder / Indicator / Strategy / Pine / Chart / MQL5 — IMPLEMENTED
+- SP-PRIO-T38 Map Quant Runtime plot/shape outputs directly into chart sandbox — NOT_STARTED
+- SP-PRIO-T39 Strengthen Pine strategy generator exits/stops/targets — NOT_STARTED
+- SP-PRIO-T40 Expand TradingView QA rules from GODMODE engineering patterns — NOT_STARTED
+
 ## Current branch
 
-`codex/phase-15-21-platform-hardening`
+`codex/priority-ai-galaxy-pine-lab`
+
+## Current validation state
+
+The new priority wave has not yet been merged. CI must compile the TradingView chart
+dependency, Quant Coder bridge, updated renderer, Indicator Specification/generator and
+new Lab UI before any task is marked COMPLETED.
 
 ## Exact next action
 
-1. Open a PR for the platform-hardening wave.
-2. Run unit tests, Android lint and debug APK build.
-3. Fix all failures and merge only when CI is green.
-4. Continue Phase 24 comprehensive testing and Phase 26 end-to-end validation.
-5. Do not declare the full Master Prompt complete until production providers,
-   persistence, AI gateway deployment and remaining release-grade integrations are implemented.
+1. Open a PR for `codex/priority-ai-galaxy-pine-lab` to trigger Android CI.
+2. Run/fix Android unit tests, lint and debug build until green.
+3. Add focused tests for agent workflow, indicator specification and Pine generator.
+4. Map bounded Quant Runtime plot output to the in-app chart.
+5. Implement staged Scalper AI Lab execution through the trusted backend.
+6. Merge only after green CI; keep News/Markets/Education lower priority until this core is stable.
