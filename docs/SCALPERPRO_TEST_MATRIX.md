@@ -17,6 +17,12 @@
 | MQL5 | Generated artifact never claims compile verification | IMPLEMENTED |
 | Backtest | Same input produces identical result | IMPLEMENTED |
 | Backtest | Stop wins ambiguous same-bar stop+target collision | IMPLEMENTED |
+| Chart Vision | Valid PNG request contract passes | IMPLEMENTED |
+| Chart Vision | Image above 10 MB is rejected | IMPLEMENTED |
+| Risk | XAUUSD deterministic sizing fixture | IMPLEMENTED |
+| Journal | Closed-trade statistics calculation | IMPLEMENTED |
+| Journal | Small samples suppress strong behavior claims | IMPLEMENTED |
+| Learning | Tool deep-link mapping | PENDING_UI_TEST |
 | Home | OpenGL ES renderer initializes | PENDING_DEVICE |
 | Home | Default Y-axis auto-orbit | IMPLEMENTED / PENDING_DEVICE |
 | Home | X/Y drag | IMPLEMENTED / PENDING_DEVICE |
