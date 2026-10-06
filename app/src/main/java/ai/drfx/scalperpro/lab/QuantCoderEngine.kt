@@ -29,6 +29,15 @@ data class QuantRuntimePlotSeries(
     val values: List<Double?>
 )
 
+data class QuantRuntimeShapeSeries(
+    val title: String,
+    val below: Boolean,
+    val color: String,
+    val glyph: String,
+    val text: String,
+    val indices: List<Int>
+)
+
 data class QuantRuntimeReport(
     val ok: Boolean,
     val title: String,
@@ -49,6 +58,7 @@ data class QuantRuntimeReport(
     val shapeActivity: List<Int>,
     val candleData: List<QuantRuntimeCandle>,
     val plotSeries: List<QuantRuntimePlotSeries>,
+    val shapeSeries: List<QuantRuntimeShapeSeries>,
     val runtimeMs: Long,
     val engine: String,
     val error: String?
@@ -184,6 +194,9 @@ class QuantCoderEngine(
                 plotSeries = parsePlotSeries(
                     json.optJSONArray("plotSeries")
                 ),
+                shapeSeries = parseShapeSeries(
+                    json.optJSONArray("shapeSeries")
+                ),
                 runtimeMs = json.optLong(
                     "runtimeMs",
                     0L
@@ -227,6 +240,7 @@ class QuantCoderEngine(
             shapeActivity = emptyList(),
             candleData = emptyList(),
             plotSeries = emptyList(),
+            shapeSeries = emptyList(),
             runtimeMs = 0L,
             engine = "DrFXQuant Quant Coder",
             error = error
@@ -358,6 +372,50 @@ class QuantCoderEngine(
                         values = parseNullableDoubles(
                             item.optJSONArray(
                                 "values"
+                            )
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    private fun parseShapeSeries(
+        array: JSONArray?
+    ): List<QuantRuntimeShapeSeries> {
+        if (array == null) return emptyList()
+
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item =
+                    array.optJSONObject(index) ?:
+                        continue
+
+                add(
+                    QuantRuntimeShapeSeries(
+                        title = item.optString(
+                            "title",
+                            "Signal " + (index + 1)
+                        ),
+                        below = item.optBoolean(
+                            "below",
+                            true
+                        ),
+                        color = item.optString(
+                            "color",
+                            "#F5B942"
+                        ),
+                        glyph = item.optString(
+                            "glyph",
+                            "▲"
+                        ),
+                        text = item.optString(
+                            "text",
+                            ""
+                        ),
+                        indices = parseInts(
+                            item.optJSONArray(
+                                "indices"
                             )
                         )
                     )
