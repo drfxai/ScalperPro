@@ -17,11 +17,11 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-T81",
-  "currentTask": "SP-PRIO-T82",
-  "currentStatus": "RELEASE_BUILD",
-  "workingBranch": "main",
-  "pullRequest": 9,
+  "lastCompletedTask": "SP-PRIO-T90",
+  "currentTask": "SP-PRIO-T91",
+  "currentStatus": "TESTING",
+  "workingBranch": "codex/local-historical-data-lab",
+  "pullRequest": 11,
   "implementedInCurrentWave": [
     "Android trusted HTTPS client for Scalper AI chat and staged specialist workflows",
     "AI Builder specialist execution UI and Pine handoff",
@@ -39,11 +39,16 @@
     "Boolean composition plus crossover/crossunder",
     "Fail-closed Strategy Specification compatibility checker",
     "Deterministic Strategy Specification backtest adapter",
-    "Beginner-facing Backtest Lab metrics and recent trade list"
+    "Beginner-facing Backtest Lab metrics and recent trade list",
+    "Local-only OHLC CSV parser",
+    "Bounded Android Storage Access Framework CSV loader",
+    "CSV OHLC/timestamp/volume validation with duplicate rejection",
+    "Local Backtest Lab dataset switch with no upload path"
   ],
   "knownBlockers": [
-    "V1.0.0 release assets are being refreshed from the green Backtest Lab main",
-    "Production historical candle provider is not connected",
+    "PR #11 must pass Android unit tests, lint and APK build before merge",
+    "Physical-device file-picker/backtest UX validation is pending",
+    "Production provider-backed historical candles remain optional and disconnected",
     "TradingView Strategy Tester equivalence is not claimed",
     "Structure/custom/trailing backtest semantics require explicit deterministic contracts",
     "Trusted AI Gateway URL/provider deployment is not configured in the default build",
@@ -51,5 +56,5 @@
     "MetaEditor compile worker is not configured",
     "Production Android signing key is not configured"
   ],
-  "exactNextAction": "Refresh V1.0.0 release assets, verify tag/assets, then continue Quant Lab with local historical-data import and robustness tooling."
+  "exactNextAction": "Finish PR #11 CI, merge only when green, verify main CI, then refresh V1.0.0 and continue Quant Lab robustness tooling."
 }

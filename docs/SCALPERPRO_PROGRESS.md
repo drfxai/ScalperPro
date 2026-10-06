@@ -164,7 +164,7 @@ Generated MQL5 remains STATIC_ANALYZED until a real MetaEditor worker returns a 
 - SP-PRIO-T79 PR #9 compile/parser hotfix — COMPLETED
 - SP-PRIO-T80 PR #9 Android unit tests/lint/APK — PASSED
 - SP-PRIO-T81 Main Android CI after hotfix merge — PASSED
-- SP-PRIO-T82 V1.0.0 release refresh with Backtest Lab — RUNNING
+- SP-PRIO-T82 V1.0.0 release refresh with Backtest Lab — COMPLETED
 
 Main recovery commit after PR #9:
 `785039e8651f18cd4f51396a65baaf1233596bdd`
@@ -181,3 +181,31 @@ synthetic research data rather than live/historical provider data.
 4. Physical-device Neural Galaxy + Quant Lab validation remains required.
 5. Live AI remains disabled until the trusted HTTPS gateway is deployed/configured.
 
+
+
+## Local historical-data workflow — PR #11
+
+- SP-PRIO-T83 Local-only OHLC CSV parser — IMPLEMENTED
+- SP-PRIO-T84 Bounded Android Storage Access Framework loader — IMPLEMENTED
+- SP-PRIO-T85 CSV timestamp/ohlc/volume validation — IMPLEMENTED
+- SP-PRIO-T86 Duplicate timestamp rejection + time sorting warning — IMPLEMENTED
+- SP-PRIO-T87 UTF-8 BOM + decimal-comma handling — IMPLEMENTED
+- SP-PRIO-T88 Backtest Lab local CSV / sample dataset switch — IMPLEMENTED
+- SP-PRIO-T89 Local-file privacy labeling — IMPLEMENTED
+- SP-PRIO-T90 Historical CSV unit tests — IMPLEMENTED
+- SP-PRIO-T91 PR #11 Android CI — TESTING
+
+Important boundary:
+The local historical-data importer reads the user-selected file through Android's
+Storage Access Framework and feeds candles directly into the on-device Backtest Lab.
+This path does not upload the CSV to the Scalper backend or AI Gateway.
+
+Current branch:
+`codex/local-historical-data-lab`
+
+Current PR:
+#11 — Add private local historical CSV testing to Quant Lab
+
+Exact next action:
+Run/fix PR #11 unit tests, lint and APK build. Merge only when green. Then verify main CI
+and refresh V1.0.0 only after the complete local-import wave is present on main.

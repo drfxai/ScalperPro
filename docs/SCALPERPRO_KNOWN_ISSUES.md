@@ -42,3 +42,8 @@ TradingView Lightweight Charts Android remains configured with
   (common OHLC comparisons, EMA/SMA/RSI/ATR, boolean composition and crossover/crossunder).
   Unsupported structure/custom/trailing rules are blocked instead of approximated.
 - Internal backtest results are not labeled TradingView Strategy Tester results.
+
+- Local CSV historical-data import is implemented in PR #11 and intentionally remains an
+  on-device Backtest Lab path. It is not a live market-data feed.
+- The importer intentionally supports simple OHLC CSV layouts rather than a general spreadsheet
+  engine. Complex quoted/multi-line CSV dialects are outside the V1 parser contract.

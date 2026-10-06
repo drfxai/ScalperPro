@@ -1,5 +1,7 @@
 package ai.drfx.scalperpro.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,10 +47,13 @@ import ai.drfx.scalperpro.code.PineStaticAnalyzer
 import ai.drfx.scalperpro.code.PineStudioEngine
 import ai.drfx.scalperpro.indicator.IndicatorTemplateCatalog
 import ai.drfx.scalperpro.lab.BacktestLabDemo
+import ai.drfx.scalperpro.lab.LocalHistoricalDataLoader
 import ai.drfx.scalperpro.lab.QuantCoderEngine
 import ai.drfx.scalperpro.lab.QuantLabCatalog
 import ai.drfx.scalperpro.lab.QuantLabChart
 import ai.drfx.scalperpro.lab.QuantRuntimeReport
+import ai.drfx.scalperpro.market.Candle
+import ai.drfx.scalperpro.market.HistoricalCsvParseResult
 import ai.drfx.scalperpro.strategy.DirectionPermission
 import ai.drfx.scalperpro.strategy.MarketType
 import ai.drfx.scalperpro.strategy.StopDefinition
@@ -1036,10 +1041,102 @@ private fun BacktestLabPanel(
     onBackToStrategy: () -> Unit,
     onOpenPine: () -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope =
+        rememberCoroutineScope()
+
+    var importedCandles by remember {
+        mutableStateOf<List<Candle>?>(
+            null
+        )
+    }
+    var importMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+    var importWarnings by remember {
+        mutableStateOf<List<String>>(
+            emptyList()
+        )
+    }
+    var importBusy by remember {
+        mutableStateOf(false)
+    }
+
+    val csvLauncher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts
+                    .OpenDocument()
+        ) { uri ->
+            if (uri != null) {
+                importBusy = true
+                importMessage = null
+                importWarnings =
+                    emptyList()
+
+                coroutineScope.launch {
+                    val parsed =
+                        LocalHistoricalDataLoader
+                            .loadCsv(
+                                context =
+                                    context,
+                                uri = uri,
+                                symbol =
+                                    specification
+                                        .symbol,
+                                timeframe =
+                                    specification
+                                        .primaryTimeframe
+                            )
+
+                    when (parsed) {
+                        is HistoricalCsvParseResult
+                            .Success -> {
+                            importedCandles =
+                                parsed.candles
+                            importWarnings =
+                                parsed.warnings
+                            importMessage =
+                                "Loaded " +
+                                    parsed.candles
+                                        .size +
+                                    " candles locally."
+                        }
+
+                        is HistoricalCsvParseResult
+                            .Failure -> {
+                            importMessage =
+                                parsed.errors
+                                    .joinToString(
+                                        "\n"
+                                    )
+                        }
+                    }
+
+                    importBusy = false
+                }
+            }
+        }
+
     val report =
-        remember(specification) {
+        remember(
+            specification,
+            importedCandles
+        ) {
             BacktestLabDemo.run(
-                specification
+                specification =
+                    specification,
+                candlesOverride =
+                    importedCandles,
+                datasetLabelOverride =
+                    if (
+                        importedCandles !=
+                            null
+                    ) {
+                        "Local CSV dataset"
+                    } else {
+                        null
+                    }
             )
         }
 
@@ -1083,12 +1180,126 @@ private fun BacktestLabPanel(
                                 .secondary
                     )
                     Text(
-                        "Research dataset only — not live market history.",
+                        if (
+                            importedCandles !=
+                                null
+                        ) {
+                            "Local file only — this importer does not upload the CSV."
+                        } else {
+                            "Research dataset only — not live market history."
+                        },
                         color =
                             MaterialTheme
                                 .colorScheme
                                 .tertiary
                     )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(7.dp)
+                ) {
+                    Text(
+                        "Historical Data",
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+                    Text(
+                        "Import OHLC CSV locally to test the Strategy Specification without sending the file to a server.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .secondary
+                    )
+                    Text(
+                        "Required columns: time/timestamp, open, high, low, close. Optional: volume.",
+                        color =
+                            MaterialTheme
+                                .colorScheme
+                                .tertiary
+                    )
+
+                    Row(
+                        horizontalArrangement =
+                            Arrangement.spacedBy(
+                                8.dp
+                            )
+                    ) {
+                        Button(
+                            enabled =
+                                !importBusy,
+                            onClick = {
+                                csvLauncher.launch(
+                                    arrayOf(
+                                        "text/csv",
+                                        "text/comma-separated-values",
+                                        "text/plain",
+                                        "application/vnd.ms-excel"
+                                    )
+                                )
+                            }
+                        ) {
+                            Text(
+                                if (importBusy) {
+                                    "Importing..."
+                                } else {
+                                    "Import CSV"
+                                }
+                            )
+                        }
+
+                        if (
+                            importedCandles !=
+                                null
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    importedCandles =
+                                        null
+                                    importMessage =
+                                        "Using deterministic sample dataset."
+                                    importWarnings =
+                                        emptyList()
+                                }
+                            ) {
+                                Text("Use Sample")
+                            }
+                        }
+                    }
+
+                    importMessage?.let {
+                        Text(
+                            it,
+                            color =
+                                if (
+                                    importedCandles !=
+                                        null
+                                ) {
+                                    MaterialTheme
+                                        .colorScheme
+                                        .secondary
+                                } else {
+                                    MaterialTheme
+                                        .colorScheme
+                                        .tertiary
+                                }
+                        )
+                    }
+
+                    importWarnings.forEach {
+                        Text(
+                            "Warning • " + it,
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .tertiary
+                        )
+                    }
                 }
             }
         }
