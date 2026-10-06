@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -27,7 +28,8 @@ import ai.drfx.scalperpro.notifications.NotificationType
 
 @Composable
 internal fun SettingsScreen(
-    onHome: () -> Unit
+    onHome: () -> Unit,
+    onDiagnostics: () -> Unit
 ) {
     val aiState = remember { DefaultAiProviderDashboard.state }
     var preferences by remember {
@@ -154,6 +156,24 @@ internal fun SettingsScreen(
                             "Cached data must be labeled FRESH, STALE or EXPIRED. Expired market data is never presented as live.",
                             color = MaterialTheme.colorScheme.secondary
                         )
+                    }
+                }
+            }
+
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("Diagnostics & privacy", fontWeight = FontWeight.Bold)
+                        Text(
+                            "Structured logs use a bounded in-memory buffer and redact credential-like attributes before storage.",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Button(onClick = onDiagnostics) {
+                            Text("Open Diagnostics")
+                        }
                     }
                 }
             }
