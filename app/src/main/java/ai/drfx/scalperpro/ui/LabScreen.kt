@@ -35,14 +35,17 @@ import ai.drfx.scalperpro.strategy.StrategySpecificationValidator
 import ai.drfx.scalperpro.strategy.TakeProfitDefinition
 import ai.drfx.scalperpro.strategy.TakeProfitMethod
 
-private enum class LabMode {
+internal enum class LabMode {
     SPECIFICATION,
     PINE,
     MQL5
 }
 
 @Composable
-internal fun LabScreen(onHome: () -> Unit) {
+internal fun LabScreen(
+    onHome: () -> Unit,
+    initialMode: LabMode = LabMode.SPECIFICATION
+) {
     val specification = remember {
         StrategySpecification(
             name = "Gold EMA RSI",
@@ -89,7 +92,7 @@ internal fun LabScreen(onHome: () -> Unit) {
         Mql5StudioEngine.generate(specification)
     }
 
-    var mode by remember { mutableStateOf(LabMode.SPECIFICATION) }
+    var mode by remember(initialMode) { mutableStateOf(initialMode) }
 
     Column(Modifier.fillMaxSize()) {
         PageHeader("Strategy Lab", onHome)

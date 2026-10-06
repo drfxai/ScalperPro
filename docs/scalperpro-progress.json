@@ -3,20 +3,21 @@
   "versionName": "1.0.0",
   "versionCode": 1,
   "repository": "DrFXAi/ScalperPro",
-  "lastCompletedTask": "SP-P10-T06",
-  "currentTask": "SP-P24-T04",
+  "lastCompletedTask": "SP-P14-T04",
+  "currentTask": "SP-P24-T05",
   "currentStatus": "TESTING",
-  "workingBranch": "codex/phase-04-06-core-data",
-  "pullRequest": 2,
-  "exactNextAction": "Finish CI for PR #2, fix failures, merge only when green, then continue Chart Vision, Risk Manager, Journal and Traderpedia foundations.",
+  "workingBranch": "codex/phase-11-14-intelligence-user-data",
+  "exactNextAction": "Open PR, run unit tests/lint/debug build for phases 11-14, fix failures, merge only when green, then continue phases 15-21 foundations.",
   "implementedInCurrentWave": [
-    "Market provider/domain foundation",
-    "News/economic-calendar provider/domain foundation",
-    "Auditable signal lifecycle",
-    "Strategy Specification v2",
-    "Pine Studio generation/static-analysis foundation",
-    "MQL5 Studio generation/static-analysis foundation",
-    "Deterministic backtest core and metrics"
+    "Chart Vision image/context validation contract",
+    "Chart Vision local photo-picker UI",
+    "Instrument-aware deterministic Risk Manager",
+    "Portfolio open-risk summary foundation",
+    "Trader Journal domain/statistics/sample-size guardrails",
+    "Session-only Journal UI with explicit persistence limitation",
+    "Traderpedia/Academy typed catalog",
+    "Tool deep-links into Strategy/Pine/MQL5/Backtest/Risk/News/Markets/Journal",
+    "Secondary navigation for Chart Vision, Backtest, Risk and Journal"
   ],
   "knownBlockers": [
     "Production signing secret not configured",
@@ -24,7 +25,9 @@
     "Licensed news/economic-calendar provider not configured",
     "Live signal transport/provider not configured",
     "AI gateway not yet deployed",
+    "Chart Vision multimodal gateway submission not configured",
     "Pine/MQL external compile verification not configured",
-    "Historical-data provider and Strategy Specification expression interpreter not configured"
+    "Historical-data provider and Strategy Specification expression interpreter not configured",
+    "Journal encrypted Room persistence and account sync not implemented"
   ]
 }

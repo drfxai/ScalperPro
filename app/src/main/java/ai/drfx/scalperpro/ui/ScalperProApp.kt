@@ -40,9 +40,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import ai.drfx.scalperpro.galaxy.GalaxyGraphView
+import ai.drfx.scalperpro.learning.ToolDeepLink
 
 internal enum class Destination {
-    Home, Markets, News, Signals, AI, Lab, Learn, About
+    Home,
+    Markets,
+    News,
+    Signals,
+    AI,
+    ChartVision,
+    Lab,
+    Backtest,
+    Risk,
+    Journal,
+    Learn,
+    About
 }
 
 private val DarkScheme = darkColorScheme(
@@ -67,7 +79,13 @@ private val LightScheme = lightColorScheme(
 fun ScalperProApp() {
     var darkTheme by remember { mutableStateOf(true) }
     var destination by remember { mutableStateOf(Destination.Home) }
+    var labMode by remember { mutableStateOf(LabMode.SPECIFICATION) }
     val colors = if (darkTheme) DarkScheme else LightScheme
+
+    fun openLab(mode: LabMode) {
+        labMode = mode
+        destination = Destination.Lab
+    }
 
     MaterialTheme(colorScheme = colors) {
         Surface(modifier = Modifier.fillMaxSize()) {
@@ -85,7 +103,12 @@ fun ScalperProApp() {
                             val label = item.second
                             NavigationBarItem(
                                 selected = destination == target,
-                                onClick = { destination = target },
+                                onClick = {
+                                    if (target == Destination.Lab) {
+                                        labMode = LabMode.SPECIFICATION
+                                    }
+                                    destination = target
+                                },
                                 icon = { Text(if (destination == target) "●" else "○") },
                                 label = { Text(label) }
                             )
@@ -97,6 +120,7 @@ fun ScalperProApp() {
                     when (destination) {
                         Destination.Home -> HomeScreen(
                             onNavigate = { destination = it },
+                            onOpenLab = { openLab(it) },
                             darkTheme = darkTheme,
                             onToggleTheme = { darkTheme = !darkTheme },
                             onAbout = { destination = Destination.About }
@@ -105,12 +129,49 @@ fun ScalperProApp() {
                             onHome = { destination = Destination.Home },
                             onNews = { destination = Destination.News }
                         )
-                        Destination.News -> NewsScreen { destination = Destination.Home }
-                        Destination.Signals -> SignalsScreen { destination = Destination.Home }
-                        Destination.AI -> AiScreen { destination = Destination.Home }
-                        Destination.Lab -> LabScreen { destination = Destination.Home }
-                        Destination.Learn -> LearnScreen { destination = Destination.Home }
-                        Destination.About -> AboutScreen { destination = Destination.Home }
+                        Destination.News -> NewsScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Signals -> SignalsScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.AI -> AiScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.ChartVision -> ChartVisionScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Lab -> LabScreen(
+                            onHome = { destination = Destination.Home },
+                            initialMode = labMode
+                        )
+                        Destination.Backtest -> BacktestScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Risk -> RiskScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Journal -> JournalScreen {
+                            destination = Destination.Home
+                        }
+                        Destination.Learn -> LearnScreen(
+                            onHome = { destination = Destination.Home },
+                            onOpenTool = { deepLink ->
+                                when (deepLink) {
+                                    ToolDeepLink.STRATEGY_LAB -> openLab(LabMode.SPECIFICATION)
+                                    ToolDeepLink.PINE_STUDIO -> openLab(LabMode.PINE)
+                                    ToolDeepLink.MQL5_STUDIO -> openLab(LabMode.MQL5)
+                                    ToolDeepLink.RISK_MANAGER -> destination = Destination.Risk
+                                    ToolDeepLink.BACKTEST -> destination = Destination.Backtest
+                                    ToolDeepLink.NEWS -> destination = Destination.News
+                                    ToolDeepLink.MARKETS -> destination = Destination.Markets
+                                    ToolDeepLink.JOURNAL -> destination = Destination.Journal
+                                }
+                            }
+                        )
+                        Destination.About -> AboutScreen {
+                            destination = Destination.Home
+                        }
                     }
                 }
             }
@@ -121,6 +182,7 @@ fun ScalperProApp() {
 @Composable
 private fun HomeScreen(
     onNavigate: (Destination) -> Unit,
+    onOpenLab: (LabMode) -> Unit,
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
     onAbout: () -> Unit
@@ -131,7 +193,9 @@ private fun HomeScreen(
     Box(Modifier.fillMaxSize().background(Color(0xFF05060A))) {
         AndroidView(
             factory = { context ->
-                GalaxyGraphView(context) { node -> selectedNode = node }
+                GalaxyGraphView(context) { node ->
+                    selectedNode = node
+                }
             },
             modifier = Modifier.fillMaxSize()
         )
@@ -147,24 +211,46 @@ private fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Scalper Pro", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text("AI TRADING INTELLIGENCE • V1.0.0", color = Color(0xFF8DE8FA))
+                    Text(
+                        "Scalper Pro",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "AI TRADING INTELLIGENCE • V1.0.0",
+                        color = Color(0xFF8DE8FA)
+                    )
                 }
                 Row {
                     TextButton(onClick = onToggleTheme) {
                         Text(if (darkTheme) "Light" else "Dark")
                     }
-                    TextButton(onClick = onAbout) { Text("About") }
+                    TextButton(onClick = onAbout) {
+                        Text("About")
+                    }
                 }
             }
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0x8A111527)),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0x8A111527)
+                ),
                 shape = RoundedCornerShape(18.dp)
             ) {
-                Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    Text("Selected: " + selectedNode, color = Color.White)
-                    Text("AUTO ORBIT: ON", color = Color(0xFF8DE8FA))
+                Column(
+                    Modifier.padding(
+                        horizontal = 12.dp,
+                        vertical = 8.dp
+                    )
+                ) {
+                    Text(
+                        "Selected: " + selectedNode,
+                        color = Color.White
+                    )
+                    Text(
+                        "AUTO ORBIT: ON",
+                        color = Color(0xFF8DE8FA)
+                    )
                 }
             }
         }
@@ -175,13 +261,18 @@ private fun HomeScreen(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 items(
                     listOf(
                         "Analyze Chart",
                         "Build Strategy",
                         "Generate Pine",
                         "Generate MQL5",
+                        "Backtest",
+                        "Risk Manager",
+                        "Journal",
                         "News Summary",
                         "Live Signals"
                     )
@@ -190,9 +281,13 @@ private fun HomeScreen(
                         onClick = {
                             prompt = action
                             when (action) {
-                                "Build Strategy",
-                                "Generate Pine",
-                                "Generate MQL5" -> onNavigate(Destination.Lab)
+                                "Analyze Chart" -> onNavigate(Destination.ChartVision)
+                                "Build Strategy" -> onOpenLab(LabMode.SPECIFICATION)
+                                "Generate Pine" -> onOpenLab(LabMode.PINE)
+                                "Generate MQL5" -> onOpenLab(LabMode.MQL5)
+                                "Backtest" -> onNavigate(Destination.Backtest)
+                                "Risk Manager" -> onNavigate(Destination.Risk)
+                                "Journal" -> onNavigate(Destination.Journal)
                                 "News Summary" -> onNavigate(Destination.News)
                                 "Live Signals" -> onNavigate(Destination.Signals)
                                 else -> onNavigate(Destination.AI)
@@ -206,11 +301,15 @@ private fun HomeScreen(
             Spacer(Modifier.height(8.dp))
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xE8111420)),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xE8111420)
+                ),
                 shape = RoundedCornerShape(22.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextField(
@@ -220,9 +319,21 @@ private fun HomeScreen(
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
-                    TextButton(onClick = { onNavigate(Destination.AI) }) { Text("🎙") }
-                    TextButton(onClick = { onNavigate(Destination.AI) }) { Text("＋") }
-                    Button(onClick = { onNavigate(Destination.AI) }) { Text("Send") }
+                    TextButton(
+                        onClick = { onNavigate(Destination.AI) }
+                    ) {
+                        Text("🎙")
+                    }
+                    TextButton(
+                        onClick = { onNavigate(Destination.ChartVision) }
+                    ) {
+                        Text("＋")
+                    }
+                    Button(
+                        onClick = { onNavigate(Destination.AI) }
+                    ) {
+                        Text("Send")
+                    }
                 }
             }
         }
@@ -230,30 +341,55 @@ private fun HomeScreen(
 }
 
 @Composable
-internal fun PageHeader(title: String, onHome: () -> Unit) {
+internal fun PageHeader(
+    title: String,
+    onHome: () -> Unit
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("Scalper Pro V1.0.0", color = MaterialTheme.colorScheme.secondary)
+            Text(
+                title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "Scalper Pro V1.0.0",
+                color = MaterialTheme.colorScheme.secondary
+            )
         }
-        TextButton(onClick = onHome) { Text("Galaxy") }
+        TextButton(onClick = onHome) {
+            Text("Galaxy")
+        }
     }
 }
 
 @Composable
-private fun AboutScreen(onHome: () -> Unit) {
+private fun AboutScreen(
+    onHome: () -> Unit
+) {
     Column(Modifier.fillMaxSize()) {
         PageHeader("About", onHome)
-        Card(Modifier.fillMaxWidth().padding(16.dp)) {
+
+        Card(
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Column(
                 Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Scalper Pro", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Scalper Pro",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
                 Text("Version 1.0.0")
                 Text("Developed by DrFXAi")
                 Text("Telegram: DrFXAi")
