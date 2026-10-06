@@ -59,6 +59,22 @@ class GalaxyGraphView(
         setPreserveEGLContextOnPause(true)
     }
 
+    fun setAutoOrbit(
+        enabled: Boolean
+    ) {
+        queueEvent {
+            galaxyRenderer.setAutoOrbit(
+                enabled
+            )
+        }
+    }
+
+    fun resetCamera() {
+        queueEvent {
+            galaxyRenderer.resetView()
+        }
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(event)
         gestureDetector.onTouchEvent(event)
