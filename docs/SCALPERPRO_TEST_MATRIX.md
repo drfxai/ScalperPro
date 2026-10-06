@@ -59,4 +59,14 @@
 | Backtest Lab | PR #8 initial CI | FAILED (compile issue, hotfixed) |
 | Backtest Lab | PR #9 unit tests/lint/APK | PASSED |
 | Backtest Lab | Main CI after PR #9 | PASSED |
-| Release refresh | Backtest Lab V1.0.0 refresh | RUNNING |
+| Release refresh | Backtest Lab V1.0.0 refresh | PASSED |
+
+| Historical CSV | comma-delimited epoch-seconds parse | IMPLEMENTED / UNIT_TEST |
+| Historical CSV | semicolon + ISO timestamp parse | IMPLEMENTED / UNIT_TEST |
+| Historical CSV | UTF-8 BOM + decimal comma | IMPLEMENTED / UNIT_TEST |
+| Historical CSV | invalid OHLC bounds rejected | IMPLEMENTED / UNIT_TEST |
+| Historical CSV | unordered rows sorted with warning | IMPLEMENTED / UNIT_TEST |
+| Historical CSV | duplicate timestamps rejected | IMPLEMENTED / UNIT_TEST |
+| Historical CSV | local SAF loader size bound | IMPLEMENTED / CI |
+| Historical CSV | file stays local to Backtest Lab | IMPLEMENTED / ARCHITECTURE |
+| Historical CSV | PR #11 unit tests/lint/APK | CI_RUNNING |
