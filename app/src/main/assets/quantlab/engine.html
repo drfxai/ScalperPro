@@ -55,7 +55,8 @@
       var started = Date.now();
       var program = window.dqQuantCoder.compile(String(source || ""));
       var split = splitWarnings(program.warnings || []);
-      var result = window.dqQuantCoder.run(program, demoCandles(), null, 6000);
+      var candles = demoCandles();
+      var result = window.dqQuantCoder.run(program, candles, null, 6000);
 
       var plotActivity = (result.plots || []).map(nonNullCount);
       var shapeActivity = (result.shapes || []).map(function (x) { return (x || []).length; });
@@ -84,6 +85,26 @@
         unsupported: split.skips,
         plotActivity: plotActivity,
         shapeActivity: shapeActivity,
+        candleData: candles.map(function (c) {
+          return {
+            timeEpochSeconds: Math.floor(c.t / 1000),
+            open: c.o,
+            high: c.h,
+            low: c.l,
+            close: c.c
+          };
+        }),
+        plotSeries: (program.plots || []).slice(0, 6).map(function (plot, index) {
+          return {
+            title: String(plot.title || ("Plot " + (index + 1))),
+            color: String(plot.color || "#8B5CF6"),
+            hidden: !!plot.hidden,
+            style: String(plot.style || "line"),
+            values: (result.plots[index] || []).map(function (value) {
+              return value == null || !isFinite(value) ? null : Number(value);
+            })
+          };
+        }),
         runtimeMs: runtimeMs,
         engine: "DrFXQuant Quant Coder"
       });
