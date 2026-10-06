@@ -17,8 +17,8 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-T67",
-  "currentTask": "SP-PRIO-CI-02",
+  "lastCompletedTask": "SP-PRIO-T42",
+  "currentTask": "SP-PRIO-CI-03",
   "currentStatus": "TESTING",
   "workingBranch": "codex/complete-ai-quantlab-core",
   "pullRequest": 7,
@@ -31,7 +31,10 @@
     "Pine strategy sessions, confirmed bars, cooldown, costs, stops, targets and exits",
     "DrFXQuant plot, plotshape and label output mapping to TradingView chart",
     "Conservative Pine-condition to MQL5 translator",
-    "MQL5 CTrade scaffold with risk sizing, spread/new-bar/position guards and CopyBuffer helpers"
+    "MQL5 CTrade scaffold with risk sizing, spread/new-bar/position guards and CopyBuffer helpers",
+    "Damped XYZ Neural Galaxy inertia with pause/play/reset orbit controls",
+    "TradingView-aligned confirmed-HTF lookahead review and conservative next-tick fill default",
+    "Interactive strategy archetype/tool/timeframe reference selectors"
   ],
   "knownBlockers": [
     "PR #7 must pass Android unit tests, lint and APK build before merge",
@@ -42,5 +45,5 @@
     "Physical-device Neural Galaxy/Quant Lab validation is pending",
     "Production Android signing key is not configured"
   ],
-  "exactNextAction": "Finish PR #7 CI, repair failures, merge only when green, verify main CI, then perform physical-device core validation before secondary News/Markets/Education work."
+  "exactNextAction": "Run the latest PR #7 CI after Galaxy and TradingView-guidance updates; fix failures, merge only when green, verify main CI, then refresh the V1.0.0 installable release."
 }
