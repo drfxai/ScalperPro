@@ -9,6 +9,8 @@
 | Galaxy | OpenGL ES renderer initializes | PENDING_DEVICE |
 | Galaxy | Default clockwise Y auto-orbit | IMPLEMENTED / PENDING_DEVICE |
 | Galaxy | X/Y drag, pinch zoom, Z twist | IMPLEMENTED / PENDING_DEVICE |
+| Galaxy | Damped rotational inertia | IMPLEMENTED / PENDING_DEVICE |
+| Galaxy | Auto-orbit pause/play/reset | IMPLEMENTED / PENDING_DEVICE |
 | Galaxy | AI/Pine/Quant/MQL5 node routing | IMPLEMENTED / PENDING_UI_TEST |
 | Galaxy | Home core-cluster shortcuts | IMPLEMENTED |
 | AI | Specialist workflow planner: indicator | IMPLEMENTED / UNIT_TEST |
@@ -22,6 +24,8 @@
 | Indicator | Pine v6 generation | IMPLEMENTED / UNIT_TEST |
 | Pine QA | lookahead_on error | IMPLEMENTED / UNIT_TEST |
 | Pine QA | HTF confirmation review | IMPLEMENTED / UNIT_TEST |
+| Pine QA | confirmed HTF [1] + lookahead_on pattern recognized | IMPLEMENTED / UNIT_TEST |
+| Pine QA | unsafe/unoffset lookahead context surfaced | IMPLEMENTED / UNIT_TEST |
 | Pine QA | strategy cost review | IMPLEMENTED / UNIT_TEST |
 | Strategy | excessive risk rejection | IMPLEMENTED / UNIT_TEST |
 | Strategy | no invented short entries | IMPLEMENTED / UNIT_TEST |
