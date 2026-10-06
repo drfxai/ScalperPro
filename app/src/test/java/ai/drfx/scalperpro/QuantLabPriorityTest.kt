@@ -90,7 +90,7 @@ class QuantLabPriorityTest {
         assertTrue(artifact.source.contains("barstate.isconfirmed"))
         assertFalse(
             artifact.findings.any {
-                it.code == "PINE_LOOKAHEAD_ON"
+                it.code == "PINE_LOOKAHEAD_CONTEXT_REVIEW"
             }
         )
     }
@@ -114,6 +114,34 @@ class QuantLabPriorityTest {
         assertFalse(
             findings.any {
                 it.code == "PINE_LOOKAHEAD_ON"
+            }
+        )
+    }
+
+    @Test
+    fun confirmedHtfOffsetWithLookaheadOnIsRecognized() {
+        val findings = PineStaticAnalyzer.analyze(
+            """
+            //@version=6
+            indicator("Confirmed HTF", overlay=true)
+            htf = request.security(
+                syminfo.tickerid,
+                "60",
+                close[1],
+                lookahead=barmerge.lookahead_on
+            )
+            plot(htf)
+            """.trimIndent()
+        )
+
+        assertTrue(
+            findings.any {
+                it.code == "PINE_CONFIRMED_HTF_PATTERN"
+            }
+        )
+        assertFalse(
+            findings.any {
+                it.code == "PINE_LOOKAHEAD_CONTEXT_REVIEW"
             }
         )
     }
