@@ -1,0 +1,16 @@
+name = "scalperpro-ai-gateway"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+GEMINI_MODEL = "gemini-3.8-flash"
+ENABLE_NINEROUTER_FALLBACK = "false"
+
+# Configure non-secret routing values after deploying:
+# NINEROUTER_BASE_URL = "https://your-9router-tunnel.example/v1"
+# NINEROUTER_SMART_MODEL = "your-smart-route-id"
+# NINEROUTER_COMBO_MODEL = "your-combo-route-id"
+#
+# Store provider credentials only with Wrangler secrets:
+# wrangler secret put GEMINI_API_KEY
+# wrangler secret put NINEROUTER_API_KEY

@@ -1,0 +1,15 @@
+{
+  "product": "Scalper Pro",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "repository": "DrFXAi/ScalperPro",
+  "lastCompletedTask": "SP-P03-T03",
+  "currentTask": "SP-P24-T01",
+  "currentStatus": "TESTING",
+  "exactNextAction": "Run Android CI on main and repair build failures before release.",
+  "knownBlockers": [
+    "Production signing secret not configured",
+    "Live data providers not configured",
+    "AI gateway not yet deployed"
+  ]
+}

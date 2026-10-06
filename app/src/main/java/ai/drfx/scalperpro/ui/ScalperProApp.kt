@@ -53,7 +53,7 @@ import ai.drfx.scalperpro.galaxy.GalaxyGraphView
 
 private enum class Destination { Home, Markets, Signals, AI, Lab, Learn, About }
 
-private val DarkScheme: DarkColorScheme = darkColorScheme(
+private val DarkScheme = darkColorScheme(
     primary = Color(0xFF8B5CF6),
     secondary = Color(0xFF22D3EE),
     tertiary = Color(0xFFF3C96B),
@@ -62,7 +62,7 @@ private val DarkScheme: DarkColorScheme = darkColorScheme(
     surfaceVariant = Color(0xFF151827)
 )
 
-private val LightScheme: LightColorScheme = lightColorScheme(
+private val LightScheme = lightColorScheme(
     primary = Color(0xFF6D4AFF),
     secondary = Color(0xFF067E93),
     tertiary = Color(0xFF9B6A10),

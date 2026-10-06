@@ -1,0 +1,42 @@
+name: Release V1.0.0
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: contains(github.event.head_commit.message, '[release-v1.0.0]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Validate
+        run: gradle --no-daemon :app:testDebugUnitTest :app:lintDebug
+      - name: Build installable and release APKs
+        run: gradle --no-daemon :app:assembleDebug :app:assembleRelease
+      - name: Prepare assets
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ScalperPro-V1.0.0-installable.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ScalperPro-V1.0.0-release-unsigned.apk
+          (cd dist && sha256sum *.apk > SHA256SUMS)
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            gh release upload v1.0.0 dist/* --clobber
+          else
+            gh release create v1.0.0 dist/*               --target "$GITHUB_SHA"               --title "Scalper Pro V1.0.0"               --notes "Scalper Pro V1.0.0 by DrFXAi. Includes the live 3D Neural Galaxy home, Strategy Lab foundations, deterministic risk engine, and secure Gemini 3.8 Flash / 9Router gateway architecture. The installable APK uses CI debug signing; the release APK is unsigned until a persistent production signing key is configured."
+          fi
