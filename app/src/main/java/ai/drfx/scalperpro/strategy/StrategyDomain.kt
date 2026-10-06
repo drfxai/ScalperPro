@@ -78,6 +78,17 @@ data class NewsFilterDefinition(
     val blockMinutesAfterHighImpact: Int = 0
 )
 
+data class ExecutionAssumptions(
+    val commissionPercent: Double = 0.04,
+    val slippageTicks: Int = 1,
+    val processOrdersOnClose: Boolean = true
+) {
+    init {
+        require(commissionPercent >= 0.0)
+        require(slippageTicks >= 0)
+    }
+}
+
 data class StrategySpecification(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
@@ -87,6 +98,7 @@ data class StrategySpecification(
     val confirmationTimeframes: List<String> = emptyList(),
     val indicators: List<IndicatorDefinition> = emptyList(),
     val entryConditions: List<StrategyCondition>,
+    val shortEntryConditions: List<StrategyCondition> = emptyList(),
     val exitConditions: List<StrategyCondition> = emptyList(),
     val filters: List<StrategyCondition> = emptyList(),
     val session: StrategySession?,
@@ -95,6 +107,7 @@ data class StrategySpecification(
     val takeProfit: TakeProfitDefinition,
     val trailing: TrailingDefinition = TrailingDefinition(false),
     val newsFilter: NewsFilterDefinition = NewsFilterDefinition(false),
+    val execution: ExecutionAssumptions = ExecutionAssumptions(),
     val cooldownBars: Int = 0,
     val pyramiding: Int = 0,
     val directionPermission: DirectionPermission = DirectionPermission.BOTH
@@ -119,12 +132,29 @@ object StrategySpecificationValidator {
         if (spec.name.isBlank()) errors += "Strategy name is required."
         if (spec.symbol.isBlank()) errors += "Symbol is required."
         if (spec.primaryTimeframe.isBlank()) errors += "Primary timeframe is required."
-        if (spec.entryConditions.isEmpty()) errors += "At least one entry condition is required."
+        if (
+            spec.directionPermission != DirectionPermission.SHORT_ONLY &&
+            spec.entryConditions.isEmpty()
+        ) {
+            errors += "At least one long entry condition is required."
+        }
+        if (
+            spec.directionPermission == DirectionPermission.SHORT_ONLY &&
+            spec.shortEntryConditions.isEmpty()
+        ) {
+            errors += "Short-only strategies require at least one short entry condition."
+        }
         if (spec.risk.riskPercentPerTrade <= 0.0) errors += "Risk per trade must be greater than zero."
         if (spec.risk.riskPercentPerTrade > 10.0) errors += "Risk per trade above 10% is rejected."
         if (spec.risk.maxConcurrentPositions < 1) errors += "Max concurrent positions must be at least one."
         if (spec.cooldownBars < 0) errors += "Cooldown bars cannot be negative."
         if (spec.pyramiding < 0) errors += "Pyramiding cannot be negative."
+        if (spec.execution.commissionPercent < 0.0) {
+            errors += "Commission cannot be negative."
+        }
+        if (spec.execution.slippageTicks < 0) {
+            errors += "Slippage ticks cannot be negative."
+        }
 
         when (spec.stop.method) {
             StopMethod.FIXED_PRICE_DISTANCE,
