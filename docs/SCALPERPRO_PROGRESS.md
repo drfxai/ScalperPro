@@ -149,3 +149,27 @@ Generated MQL5 remains STATIC_ANALYZED until a real MetaEditor worker returns a 
 3. Perform physical-device Neural Galaxy + Quant Lab validation.
 4. Keep live AI disabled until the trusted HTTPS gateway is deployed/configured.
 5. Only after the AI/creation core is stable, resume News/Markets/Education completion.
+
+
+## Strategy Specification Backtest integration — PR #8
+
+- SP-PRIO-T70 Strategy expression engine for EMA/SMA/RSI/ATR/OHLC — IMPLEMENTED
+- SP-PRIO-T71 Boolean AND/OR + crossover/crossunder support — IMPLEMENTED
+- SP-PRIO-T72 Strategy Specification compatibility checker — IMPLEMENTED
+- SP-PRIO-T73 Deterministic Strategy Specification backtest adapter — IMPLEMENTED
+- SP-PRIO-T74 Backtest strategy lifecycle reset/callback contract — IMPLEMENTED
+- SP-PRIO-T75 Synthetic beginner research dataset + explicit costs — IMPLEMENTED
+- SP-PRIO-T76 Backtest metrics / recent-trades Quant Lab UI — IMPLEMENTED
+- SP-PRIO-T77 Unsupported structure/custom/trailing semantics fail closed — IMPLEMENTED
+- SP-PRIO-T78 PR #8 Android CI — TESTING
+
+Current branch:
+`codex/strategy-backtest-lab`
+
+Current PR:
+#8 — Add deterministic Strategy Specification Backtest Lab
+
+Exact next action:
+Run/fix PR #8 unit tests, lint and installable APK build. Merge only when green. After merge,
+verify main CI and then decide whether to refresh V1.0.0 or keep this work for the next
+release checkpoint.
