@@ -176,9 +176,9 @@ object QuantLabCatalog {
             severity = "INFO"
         ),
         PineQualityRule(
-            id = "no-lookahead",
+            id = "no-future-leak",
             title = "No future leakage",
-            description = "Do not use barmerge.lookahead_on for trading decisions.",
+            description = "Review request.security context carefully. For genuine HTF non-repainting values, TradingView documents a historical expression offset such as [1] together with barmerge.lookahead_on; unoffset HTF lookahead_on can leak future data.",
             severity = "ERROR"
         ),
         PineQualityRule(
