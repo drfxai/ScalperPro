@@ -20,20 +20,33 @@ data class BacktestLabReport(
 
 object BacktestLabDemo {
     fun run(
-        specification: StrategySpecification
+        specification: StrategySpecification,
+        candlesOverride: List<Candle>? = null,
+        datasetLabelOverride: String? = null
     ): BacktestLabReport {
         val compatibility =
             StrategyBacktestCompatibilityChecker
                 .check(specification)
 
         val candles =
-            syntheticCandles(
-                symbol =
-                    specification.symbol,
-                timeframe =
-                    specification.primaryTimeframe,
-                count = 620
-            )
+            candlesOverride
+                ?.takeIf {
+                    it.size >= 2
+                }
+                ?: syntheticCandles(
+                    symbol =
+                        specification.symbol,
+                    timeframe =
+                        specification.primaryTimeframe,
+                    count = 620
+                )
+
+        val datasetLabel =
+            datasetLabelOverride
+                ?.takeIf {
+                    it.isNotBlank()
+                }
+                ?: "Deterministic synthetic research dataset"
 
         val costs =
             BacktestCosts(
@@ -50,7 +63,7 @@ object BacktestLabDemo {
                 candleCount =
                     candles.size,
                 datasetLabel =
-                    "Deterministic synthetic research dataset",
+                    datasetLabel,
                 costs = costs
             )
         }
@@ -79,7 +92,7 @@ object BacktestLabDemo {
             candleCount =
                 candles.size,
             datasetLabel =
-                "Deterministic synthetic research dataset",
+                datasetLabel,
             costs = costs
         )
     }
