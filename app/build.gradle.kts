@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "ai.drfx.scalperpro"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ai.drfx.scalperpro"
