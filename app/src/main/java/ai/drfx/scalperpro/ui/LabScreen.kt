@@ -203,6 +203,72 @@ internal fun LabScreen(
                 onPromptChange = { builderPrompt = it },
                 taskType = taskType,
                 onTaskTypeChange = { taskType = it },
+                routingMode = aiRoutingMode,
+                onRoutingModeChange = { aiRoutingMode = it },
+                gatewayConfigured = ScalperAiGatewayConfig.configured,
+                aiRunning = aiRunning,
+                aiExecution = aiExecution,
+                onRunAiTeam = {
+                    aiRunning = true
+                    aiExecution = null
+
+                    coroutineScope.launch {
+                        val result =
+                            aiGatewayClient.runLabWorkflow(
+                                taskType = taskType,
+                                routingMode = aiRoutingMode,
+                                message = builderPrompt,
+                                context =
+                                    "Scalper Pro Quant Lab. " +
+                                        "Beginner-focused educational tool. " +
+                                        "Target Pine Script v6. " +
+                                        "Never claim compile verification without an external compiler result."
+                            )
+
+                        aiExecution = result
+                        aiRunning = false
+
+                        if (
+                            result is
+                                AiLabExecutionResult.Success
+                        ) {
+                            result.workflow.stages
+                                .lastOrNull {
+                                    it.role == "pine"
+                                }
+                                ?.text
+                                ?.let(::extractCodeBlock)
+                                ?.takeIf {
+                                    it.isNotBlank()
+                                }
+                                ?.let {
+                                    pineEditor = it
+                                    runtimeReport = null
+                                }
+                        }
+                    }
+                },
+                onOpenGeneratedPine = {
+                    val result =
+                        aiExecution as?
+                            AiLabExecutionResult.Success
+
+                    val generated =
+                        result
+                            ?.workflow
+                            ?.stages
+                            ?.lastOrNull {
+                                it.role == "pine"
+                            }
+                            ?.text
+                            ?.let(::extractCodeBlock)
+
+                    if (!generated.isNullOrBlank()) {
+                        pineEditor = generated
+                        runtimeReport = null
+                        mode = LabMode.PINE
+                    }
+                },
                 onOpenIndicator = {
                     pineEditor = indicatorPine.source
                     mode = LabMode.INDICATOR
