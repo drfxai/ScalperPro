@@ -18,7 +18,7 @@
 - SP-P24-T03 Debug APK build — COMPLETED
 - SP-P25-T01 V1.0.0 GitHub Release — COMPLETED
 
-## Current implementation wave
+## Phases 4–10 core wave
 
 ### Phase 4 — Markets
 - SP-P04-T01 Strong market instrument/quote/candle models — IMPLEMENTED
@@ -71,28 +71,71 @@
 - SP-P10-T07 Strategy Specification expression interpreter — NOT_STARTED
 - SP-P10-T08 Walk-forward/Monte Carlo/optimization — NOT_STARTED
 
+## Current phases 11–14 wave
+
+### Phase 11 — Chart Vision
+- SP-P11-T01 Image/context request contract — IMPLEMENTED
+- SP-P11-T02 MIME/size validation with 10 MB bound — IMPLEMENTED
+- SP-P11-T03 Structured Chart Vision output schema — IMPLEMENTED
+- SP-P11-T04 Android photo-picker and request-validation UI — IMPLEMENTED
+- SP-P11-T05 Live multimodal AI Gateway submission — NOT_STARTED
+- SP-P11-T06 Market/news/context enrichment from production providers — NOT_STARTED
+
+### Phase 12 — Risk Manager
+- SP-P12-T01 Instrument-aware deterministic sizing model — IMPLEMENTED
+- SP-P12-T02 Quantity-step/min/max enforcement — IMPLEMENTED
+- SP-P12-T03 Reward/risk calculation — IMPLEMENTED
+- SP-P12-T04 Portfolio/correlation-group open-risk summary — IMPLEMENTED
+- SP-P12-T05 Interactive Risk Manager UI — IMPLEMENTED
+- SP-P12-T06 Broker/provider instrument-spec synchronization — NOT_STARTED
+
+### Phase 13 — Trader Journal
+- SP-P13-T01 Journal domain model — IMPLEMENTED
+- SP-P13-T02 Statistics model — IMPLEMENTED
+- SP-P13-T03 Sample-size guardrail for AI behavioral claims — IMPLEMENTED
+- SP-P13-T04 Session workflow/UI — IMPLEMENTED
+- SP-P13-T05 Encrypted persistent Room storage — NOT_STARTED
+- SP-P13-T06 Account synchronization — NOT_STARTED
+
+### Phase 14 — Traderpedia / Academy
+- SP-P14-T01 Typed content/category model — IMPLEMENTED
+- SP-P14-T02 Tool deep-link model — IMPLEMENTED
+- SP-P14-T03 Initial connected learning catalog — IMPLEMENTED
+- SP-P14-T04 Learning UI wired to app tools — IMPLEMENTED
+- SP-P14-T05 Full education content corpus/content management — NOT_STARTED
+
+### Navigation integration
+- Chart Vision secondary destination — IMPLEMENTED
+- Risk Manager secondary destination — IMPLEMENTED
+- Trader Journal secondary destination — IMPLEMENTED
+- Backtest secondary destination — IMPLEMENTED
+- Direct Pine/MQL5 Lab deep-links — IMPLEMENTED
+- Home quick actions for Chart Vision / Backtest / Risk / Journal — IMPLEMENTED
+
 ## Current constraints
 
 - Production Android signing key is not stored in the repository.
 - The trusted AI Worker must be deployed/configured before live AI requests.
 - Live market/news/signal providers are intentionally not fabricated when unconfigured.
 - Pine and MQL5 output is static-analyzed but not externally compile-verified.
-- Backtest core is deterministic but still needs the Strategy Specification expression interpreter and production historical-data provider.
+- Backtest core still needs the Strategy Specification expression interpreter and production historical-data provider.
+- Chart Vision validates local image/context input but live multimodal submission is not connected yet.
+- Journal entries are session-only in the current UI until encrypted Room persistence is implemented.
 
 ## Current branch
 
-`codex/phase-04-06-core-data`
-
-PR:
-https://github.com/drfxai/ScalperPro/pull/2
+`codex/phase-11-14-intelligence-user-data`
 
 ## Exact next action
 
-1. Complete CI for this branch.
-2. Fix any remaining test/lint/build issue.
-3. Merge PR #2 only after green CI.
-4. Start the next resumable wave:
-   - SP-P11-T01 Chart Vision input/context contract
-   - SP-P12-T01 instrument-aware deterministic Risk Manager
-   - SP-P13-T01 Trader Journal domain/persistence foundation
-   - SP-P14-T01 Traderpedia/Academy content models and tool deep-links
+1. Open a PR for the phases 11–14 branch.
+2. Run unit tests, Android lint and debug APK build in GitHub Actions.
+3. Repair any failure and re-run CI.
+4. Merge only after green CI.
+5. Continue the next resumable wave:
+   - SP-P15-T01 global search index/contracts
+   - SP-P16-T01 notification preference/domain foundation
+   - SP-P17-T01 structured diagnostics/redaction
+   - SP-P18-T01 security threat-model hardening
+   - SP-P20-T01 offline/degraded-state storage contracts
+   - SP-P21-T01 AI provider dashboard state model
