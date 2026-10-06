@@ -8,9 +8,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,28 +29,31 @@ private data class NewsUiState(
 internal fun NewsScreen(onHome: () -> Unit) {
     val repository = remember { NewsRepository(UnconfiguredNewsDataProvider()) }
 
-    val state by produceState(
-        initialValue = NewsUiState(
-            newsMessage = "Loading news provider…",
-            calendarMessage = "Loading calendar provider…"
-        ),
-        key1 = repository
-    ) {
+    var state by remember(repository) {
+        mutableStateOf(
+            NewsUiState(
+                newsMessage = "Loading news provider…",
+                calendarMessage = "Loading calendar provider…"
+            )
+        )
+    }
+
+    LaunchedEffect(repository) {
         val now = System.currentTimeMillis()
         val day = 24L * 60L * 60L * 1000L
-        val news = repository.latestNews()
-        val calendar = repository.calendar(now - day, now + 7L * day)
+        val newsResult = repository.latestNews()
+        val calendarResult = repository.calendar(now - day, now + 7L * day)
 
-        value = NewsUiState(
-            newsMessage = when (news) {
-                is NewsDataResult.Success -> news.value.size.toString() + " items loaded from " + news.providerId
-                is NewsDataResult.Unavailable -> news.reason
-                is NewsDataResult.Failure -> news.code + ": " + news.message
+        state = NewsUiState(
+            newsMessage = when (newsResult) {
+                is NewsDataResult.Success -> newsResult.value.size.toString() + " items loaded from " + newsResult.providerId
+                is NewsDataResult.Unavailable -> newsResult.reason
+                is NewsDataResult.Failure -> newsResult.code + ": " + newsResult.message
             },
-            calendarMessage = when (calendar) {
-                is NewsDataResult.Success -> calendar.value.size.toString() + " events loaded from " + calendar.providerId
-                is NewsDataResult.Unavailable -> calendar.reason
-                is NewsDataResult.Failure -> calendar.code + ": " + calendar.message
+            calendarMessage = when (calendarResult) {
+                is NewsDataResult.Success -> calendarResult.value.size.toString() + " events loaded from " + calendarResult.providerId
+                is NewsDataResult.Unavailable -> calendarResult.reason
+                is NewsDataResult.Failure -> calendarResult.code + ": " + calendarResult.message
             }
         )
     }
