@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +41,9 @@ private data class ChatBubble(
 
 @Composable
 internal fun AiScreen(
-    onHome: () -> Unit
+    onHome: () -> Unit,
+    initialMessage: String = "",
+    onInitialMessageConsumed: () -> Unit = {}
 ) {
     val client =
         remember {
@@ -49,7 +52,14 @@ internal fun AiScreen(
     val scope = rememberCoroutineScope()
 
     var message by remember {
-        mutableStateOf("")
+        mutableStateOf(initialMessage)
+    }
+
+    LaunchedEffect(initialMessage) {
+        if (initialMessage.isNotBlank()) {
+            message = initialMessage
+            onInitialMessageConsumed()
+        }
     }
     var routingMode by remember {
         mutableStateOf(
