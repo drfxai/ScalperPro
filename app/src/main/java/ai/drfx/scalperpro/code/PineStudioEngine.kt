@@ -482,155 +482,311 @@ object PineStudioEngine {
 
 object PineStaticAnalyzer {
     fun analyze(source: String): List<CodeFinding> {
-        val findings = mutableListOf<CodeFinding>()
+        val findings =
+            mutableListOf<CodeFinding>()
         val lowered = source.lowercase()
-        val compact = lowered.replace(Regex("\\s+"), " ")
+        val compact =
+            lowered.replace(
+                Regex("\\s+"),
+                " "
+            )
 
-        if (!lowered.contains("//@version=6")) {
+        if (
+            !lowered.contains(
+                "//@version=6"
+            )
+        ) {
             findings += CodeFinding(
                 severity = "INFO",
-                code = "PINE_VERSION_REVIEW",
-                message = "Scalper Pro targets Pine Script v6 for new code; review compatibility if this script uses another version."
+                code =
+                    "PINE_VERSION_REVIEW",
+                message =
+                    "Scalper Pro targets Pine Script v6 for new code; review compatibility if this script uses another version."
             )
         }
 
-        if ("barmerge.lookahead_on" in lowered) {
+        val hasSecurity =
+            "request.security(" in lowered
+        val hasSecurityLowerTf =
+            "request.security_lower_tf(" in
+                lowered
+        val hasLookaheadOn =
+            "barmerge.lookahead_on" in
+                lowered
+        val hasLookaheadOff =
+            "barmerge.lookahead_off" in
+                lowered
+
+        val confirmedHtfPattern =
+            Regex(
+                """request\.security\([\s\S]{0,520}\[[1-9][0-9]*][\s\S]{0,260}lookahead\s*=\s*barmerge\.lookahead_on""",
+                RegexOption.IGNORE_CASE
+            ).containsMatchIn(source)
+
+        if (
+            hasLookaheadOn &&
+            confirmedHtfPattern
+        ) {
             findings += CodeFinding(
-                severity = "ERROR",
-                code = "PINE_LOOKAHEAD_ON",
-                message = "barmerge.lookahead_on can introduce future leakage into historical signals."
+                severity = "INFO",
+                code =
+                    "PINE_CONFIRMED_HTF_PATTERN",
+                message =
+                    "request.security uses a historical expression offset together with barmerge.lookahead_on, the standard non-repainting higher-timeframe pattern when the requested timeframe is truly higher than the chart timeframe."
+            )
+        } else if (hasLookaheadOn) {
+            findings += CodeFinding(
+                severity = "WARNING",
+                code =
+                    "PINE_LOOKAHEAD_CONTEXT_REVIEW",
+                message =
+                    "barmerge.lookahead_on is present without an obvious historical offset. If this request targets a higher timeframe it can leak future data on historical bars; verify the requested timeframe/context explicitly."
             )
         }
 
-        if ("request.security" in lowered) {
-            if ("lookahead=barmerge.lookahead_off" !in compact &&
-                "lookahead = barmerge.lookahead_off" !in compact
-            ) {
-                findings += CodeFinding(
-                    severity = "INFO",
-                    code = "PINE_SECURITY_LOOKAHEAD_EXPLICIT",
-                    message = "request.security is present. Consider making lookahead_off explicit so higher-timeframe intent is obvious during review."
-                )
-            }
+        if (hasSecurity) {
+            val hasHistoryOffsetNearSecurity =
+                Regex(
+                    """request\.security\([\s\S]{0,520}\[[1-9][0-9]*]""",
+                    RegexOption.IGNORE_CASE
+                ).containsMatchIn(source)
 
-            if (!Regex("""request\.security[\s\S]{0,260}\[1]""")
-                    .containsMatchIn(lowered)
+            if (
+                !confirmedHtfPattern &&
+                !hasHistoryOffsetNearSecurity
             ) {
                 findings += CodeFinding(
                     severity = "WARNING",
-                    code = "PINE_HTF_CONFIRMATION_REVIEW",
-                    message = "Higher-timeframe request detected without an obvious [1] confirmed-bar offset nearby. Verify that live HTF values cannot repaint the intended signal."
+                    code =
+                        "PINE_HTF_CONFIRMATION_REVIEW",
+                    message =
+                        "request.security is present without an obvious confirmed historical offset. Higher-timeframe realtime values can repaint after the requested HTF bar closes."
                 )
             }
+
+            if (
+                hasLookaheadOff &&
+                !hasHistoryOffsetNearSecurity
+            ) {
+                findings += CodeFinding(
+                    severity = "INFO",
+                    code =
+                        "PINE_HTF_LOOKAHEAD_OFF_REPAINT_NOTE",
+                    message =
+                        "lookahead_off avoids historical future leak, but an unoffset higher-timeframe value can still fluctuate on realtime bars and repaint after reload."
+                )
+            }
+
+            if (
+                !hasLookaheadOn &&
+                !hasLookaheadOff
+            ) {
+                findings += CodeFinding(
+                    severity = "INFO",
+                    code =
+                        "PINE_SECURITY_CONTEXT_REVIEW",
+                    message =
+                        "request.security uses its default lookahead behavior. Verify whether the request is same-timeframe, higher-timeframe or lower-timeframe and document the intended repaint behavior."
+                )
+            }
+        }
+
+        if (hasSecurityLowerTf) {
+            findings += CodeFinding(
+                severity = "INFO",
+                code =
+                    "PINE_LOWER_TF_ARRAY_REVIEW",
+                message =
+                    "request.security_lower_tf is present. Review intrabar array size, execution cost and how incomplete realtime intrabars affect the intended signal."
+            )
         }
 
         val hasAlerts =
             "alert(" in lowered ||
-                "alertcondition(" in lowered
+                "alertcondition(" in
+                lowered
 
         val hasBarCloseAlertContract =
-            "barstate.isconfirmed" in lowered ||
-                "alert.freq_once_per_bar_close" in lowered
+            "barstate.isconfirmed" in
+                lowered ||
+                "alert.freq_once_per_bar_close" in
+                lowered
 
-        if (hasAlerts && !hasBarCloseAlertContract) {
+        if (
+            hasAlerts &&
+            !hasBarCloseAlertContract
+        ) {
             findings += CodeFinding(
                 severity = "WARNING",
-                code = "PINE_ALERT_TIMING_REVIEW",
-                message = "Alerts are present without an obvious confirmed-bar or once-per-bar-close contract. Verify whether intrabar alert changes are intentional."
+                code =
+                    "PINE_ALERT_TIMING_REVIEW",
+                message =
+                    "Alerts are present without an obvious confirmed-bar or once-per-bar-close contract. Verify whether intrabar alert changes are intentional."
             )
         }
 
-        val isStrategy = "strategy(" in lowered
+        val isStrategy =
+            "strategy(" in lowered
 
-        if (isStrategy && "calc_on_every_tick=true" in compact) {
+        if (
+            isStrategy &&
+            (
+                "calc_on_every_tick=true" in
+                    compact ||
+                    "calc_on_every_tick = true" in
+                    compact
+            )
+        ) {
             findings += CodeFinding(
                 severity = "WARNING",
-                code = "PINE_INTRABAR_STRATEGY_REVIEW",
-                message = "calc_on_every_tick=true can make realtime strategy behavior differ from historical bar-based results."
+                code =
+                    "PINE_INTRABAR_STRATEGY_REVIEW",
+                message =
+                    "calc_on_every_tick=true can make realtime strategy behavior differ from historical bar-based results."
+            )
+        }
+
+        if (
+            isStrategy &&
+            (
+                "process_orders_on_close=true" in
+                    compact ||
+                    "process_orders_on_close = true" in
+                    compact
+            )
+        ) {
+            findings += CodeFinding(
+                severity = "INFO",
+                code =
+                    "PINE_SAME_BAR_FILL_REVIEW",
+                message =
+                    "process_orders_on_close=true permits same-closing-tick fills in the broker emulator. Review whether that fill assumption is appropriate; next-tick fills are the default and are often more conservative."
             )
         }
 
         if (isStrategy) {
-            if ("commission_type" !in lowered && "commission_value" !in lowered) {
+            if (
+                "commission_type" !in
+                    lowered &&
+                "commission_value" !in
+                    lowered
+            ) {
                 findings += CodeFinding(
                     severity = "INFO",
-                    code = "PINE_COMMISSION_REVIEW",
-                    message = "No explicit strategy commission model was detected. Add realistic costs before interpreting backtest performance."
+                    code =
+                        "PINE_COMMISSION_REVIEW",
+                    message =
+                        "No explicit strategy commission model was detected. Add realistic costs before interpreting backtest performance."
                 )
             }
 
             if ("slippage" !in lowered) {
                 findings += CodeFinding(
                     severity = "INFO",
-                    code = "PINE_SLIPPAGE_REVIEW",
-                    message = "No explicit strategy slippage assumption was detected. Short-timeframe systems are especially sensitive to execution costs."
+                    code =
+                        "PINE_SLIPPAGE_REVIEW",
+                    message =
+                        "No explicit strategy slippage assumption was detected. Short-timeframe systems are especially sensitive to execution costs."
                 )
             }
         }
 
-        if ("strategy.entry" !in lowered && "indicator(" !in lowered) {
+        if (
+            "strategy.entry" !in lowered &&
+            "indicator(" !in lowered
+        ) {
             findings += CodeFinding(
                 severity = "INFO",
                 code = "PINE_NO_ENTRY",
-                message = "No strategy.entry call or indicator declaration was detected."
+                message =
+                    "No strategy.entry call or indicator declaration was detected."
             )
         }
 
         val persistentStateCount =
-            Regex("""(?m)^\s*var\s+""")
+            Regex(
+                """(?m)^\s*var\s+"""
+            )
                 .findAll(lowered)
                 .count()
 
-        if (persistentStateCount >= 3) {
+        if (
+            persistentStateCount >= 3
+        ) {
             findings += CodeFinding(
                 severity = "INFO",
-                code = "PINE_STATE_HYGIENE_REVIEW",
-                message = "The script has multiple persistent var states. Review every exit, invalidation and replacement path to ensure state is reset consistently."
+                code =
+                    "PINE_STATE_HYGIENE_REVIEW",
+                message =
+                    "The script has multiple persistent var states. Review every exit, invalidation and replacement path to ensure state is reset consistently."
             )
         }
 
         val loopCount =
-            Regex("""(?m)^\s*for\s+""")
+            Regex(
+                """(?m)^\s*(for|while)\s+"""
+            )
                 .findAll(lowered)
                 .count()
 
-        if (loopCount >= 5) {
+        if (loopCount >= 3) {
             findings += CodeFinding(
                 severity = "WARNING",
-                code = "PINE_RUNTIME_COST_REVIEW",
-                message = "Several loops were detected. Review per-bar runtime, history depth and nested work to avoid execution limits."
+                code =
+                    "PINE_RUNTIME_COST_REVIEW",
+                message =
+                    "Several loops were detected. TradingView applies per-loop and total execution-time limits; prefer built-ins, reduce nested work and profile complex scripts."
             )
         }
 
         val inputCount =
-            Regex("""input\.(int|float|bool|string|color|timeframe|session)\(""")
+            Regex(
+                """input\.(int|float|bool|string|color|timeframe|session|symbol|source|time|price|enum|text_area)\("""
+            )
                 .findAll(lowered)
                 .count()
 
-        if (inputCount >= 4 && "tooltip=" !in compact) {
+        if (
+            inputCount >= 4 &&
+            "tooltip=" !in compact
+        ) {
             findings += CodeFinding(
                 severity = "INFO",
-                code = "PINE_INPUT_TOOLTIP_REVIEW",
-                message = "Several user inputs are present but no tooltips were detected. Beginner-facing scripts benefit from concise parameter guidance."
+                code =
+                    "PINE_INPUT_TOOLTIP_REVIEW",
+                message =
+                    "Several user inputs are present but no tooltips were detected. Beginner-facing scripts benefit from concise parameter guidance."
             )
         }
 
-        if (inputCount >= 4 && "group=" !in compact) {
+        if (
+            inputCount >= 4 &&
+            "group=" !in compact
+        ) {
             findings += CodeFinding(
                 severity = "INFO",
-                code = "PINE_INPUT_GROUP_REVIEW",
-                message = "Several user inputs are present but no input groups were detected. Group related settings for a cleaner TradingView experience."
+                code =
+                    "PINE_INPUT_GROUP_REVIEW",
+                message =
+                    "Several user inputs are present but no input groups were detected. TradingView recommends organizing related settings for readability."
             )
         }
 
-        if (!hasBarCloseAlertContract && !hasAlerts) {
+        if (
+            !hasBarCloseAlertContract &&
+            !hasAlerts
+        ) {
             findings += CodeFinding(
                 severity = "INFO",
-                code = "PINE_CONFIRMATION_REVIEW",
-                message = "Review whether confirmed-bar logic is required for the script's signals and visuals."
+                code =
+                    "PINE_CONFIRMATION_REVIEW",
+                message =
+                    "Review whether confirmed-bar logic is required for the script's signals and visuals."
             )
         }
 
-        return findings.distinctBy { it.code }
+        return findings.distinctBy {
+            it.code
+        }
     }
 }
