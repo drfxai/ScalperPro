@@ -4,6 +4,7 @@ import ai.drfx.scalperpro.ai.AgentRole
 import ai.drfx.scalperpro.ai.LabTaskType
 import ai.drfx.scalperpro.ai.ScalperAgentWorkflowPlanner
 import ai.drfx.scalperpro.code.PineIndicatorGenerator
+import ai.drfx.scalperpro.code.PineStaticAnalyzer
 import ai.drfx.scalperpro.indicator.IndicatorSpecificationValidator
 import ai.drfx.scalperpro.indicator.IndicatorTemplateCatalog
 import ai.drfx.scalperpro.lab.QuantLabCatalog
@@ -90,6 +91,52 @@ class QuantLabPriorityTest {
         assertFalse(
             artifact.findings.any {
                 it.code == "PINE_LOOKAHEAD_ON"
+            }
+        )
+    }
+
+    @Test
+    fun htfSecurityWithoutConfirmedOffsetGetsReviewFinding() {
+        val findings = PineStaticAnalyzer.analyze(
+            """
+            //@version=6
+            indicator("HTF", overlay=true)
+            htf = request.security(syminfo.tickerid, "60", ta.ema(close, 20), lookahead=barmerge.lookahead_off)
+            plot(htf)
+            """.trimIndent()
+        )
+
+        assertTrue(
+            findings.any {
+                it.code == "PINE_HTF_CONFIRMATION_REVIEW"
+            }
+        )
+        assertFalse(
+            findings.any {
+                it.code == "PINE_LOOKAHEAD_ON"
+            }
+        )
+    }
+
+    @Test
+    fun strategyWithoutExplicitCostsGetsEducationalFindings() {
+        val findings = PineStaticAnalyzer.analyze(
+            """
+            //@version=6
+            strategy("Test", overlay=true)
+            if barstate.isconfirmed
+                strategy.entry("L", strategy.long)
+            """.trimIndent()
+        )
+
+        assertTrue(
+            findings.any {
+                it.code == "PINE_COMMISSION_REVIEW"
+            }
+        )
+        assertTrue(
+            findings.any {
+                it.code == "PINE_SLIPPAGE_REVIEW"
             }
         )
     }
