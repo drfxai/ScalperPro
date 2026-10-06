@@ -3,16 +3,28 @@
   "versionName": "1.0.0",
   "versionCode": 1,
   "repository": "DrFXAi/ScalperPro",
-  "lastCompletedTask": "SP-P06-T03",
+  "lastCompletedTask": "SP-P10-T06",
   "currentTask": "SP-P24-T04",
   "currentStatus": "TESTING",
   "workingBranch": "codex/phase-04-06-core-data",
-  "exactNextAction": "Run CI for phases 4-6 provider/domain foundations, merge if green, then continue Strategy Specification and deterministic backtesting.",
+  "pullRequest": 2,
+  "exactNextAction": "Finish CI for PR #2, fix failures, merge only when green, then continue Chart Vision, Risk Manager, Journal and Traderpedia foundations.",
+  "implementedInCurrentWave": [
+    "Market provider/domain foundation",
+    "News/economic-calendar provider/domain foundation",
+    "Auditable signal lifecycle",
+    "Strategy Specification v2",
+    "Pine Studio generation/static-analysis foundation",
+    "MQL5 Studio generation/static-analysis foundation",
+    "Deterministic backtest core and metrics"
+  ],
   "knownBlockers": [
     "Production signing secret not configured",
     "Live market provider not configured",
     "Licensed news/economic-calendar provider not configured",
     "Live signal transport/provider not configured",
-    "AI gateway not yet deployed"
+    "AI gateway not yet deployed",
+    "Pine/MQL external compile verification not configured",
+    "Historical-data provider and Strategy Specification expression interpreter not configured"
   ]
 }
