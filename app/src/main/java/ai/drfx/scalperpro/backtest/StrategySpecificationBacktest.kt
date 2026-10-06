@@ -408,12 +408,6 @@ object StrategyExpressionEngine {
             RegexOption.IGNORE_CASE
         )
 
-    private val crossoverPattern =
-        Regex(
-            """^ta\.(crossover|crossunder)\((.+),(.+)\)$""",
-            RegexOption.IGNORE_CASE
-        )
-
     private val numberPattern =
         Regex(
             """^-?\d+(?:\.\d+)?$"""
@@ -459,15 +453,14 @@ object StrategyExpressionEngine {
         }
 
         val cross =
-            crossoverPattern
-                .matchEntire(text)
+            parseCrossExpression(text)
 
         if (cross != null) {
             return operandSupported(
-                cross.groupValues[2]
+                cross.left
             ) &&
                 operandSupported(
-                    cross.groupValues[3]
+                    cross.right
                 )
         }
 
@@ -568,8 +561,7 @@ object StrategyExpressionEngine {
         }
 
         val cross =
-            crossoverPattern
-                .matchEntire(text)
+            parseCrossExpression(text)
 
         if (cross != null) {
             if (history.size < 2) {
@@ -578,33 +570,30 @@ object StrategyExpressionEngine {
 
             val currentLeft =
                 value(
-                    cross.groupValues[2],
+                    cross.left,
                     history,
                     offset = 0
                 ) ?: return null
             val currentRight =
                 value(
-                    cross.groupValues[3],
+                    cross.right,
                     history,
                     offset = 0
                 ) ?: return null
             val previousLeft =
                 value(
-                    cross.groupValues[2],
+                    cross.left,
                     history,
                     offset = 1
                 ) ?: return null
             val previousRight =
                 value(
-                    cross.groupValues[3],
+                    cross.right,
                     history,
                     offset = 1
                 ) ?: return null
 
-            return when (
-                cross.groupValues[1]
-                    .lowercase()
-            ) {
+            return when (cross.kind) {
                 "crossover" ->
                     previousLeft <=
                         previousRight &&
@@ -942,6 +931,115 @@ object StrategyExpressionEngine {
         return 100.0 -
             100.0 /
                 (1.0 + rs)
+    }
+
+    private data class CrossExpression(
+        val kind: String,
+        val left: String,
+        val right: String
+    )
+
+    private fun parseCrossExpression(
+        expression: String
+    ): CrossExpression? {
+        val trimmed =
+            expression.trim()
+
+        val kind =
+            when {
+                trimmed.startsWith(
+                    "ta.crossover(",
+                    ignoreCase = true
+                ) ->
+                    "crossover"
+
+                trimmed.startsWith(
+                    "ta.crossunder(",
+                    ignoreCase = true
+                ) ->
+                    "crossunder"
+
+                else ->
+                    return null
+            }
+
+        if (!trimmed.endsWith(")")) {
+            return null
+        }
+
+        val open =
+            trimmed.indexOf('(')
+
+        if (open < 0) {
+            return null
+        }
+
+        val inner =
+            trimmed.substring(
+                open + 1,
+                trimmed.length - 1
+            )
+
+        var depth = 0
+        var commaIndex = -1
+
+        inner.forEachIndexed {
+                index,
+                character ->
+            when (character) {
+                '(' -> depth += 1
+                ')' -> depth -= 1
+                ',' -> {
+                    if (
+                        depth == 0 &&
+                        commaIndex < 0
+                    ) {
+                        commaIndex = index
+                    }
+                }
+            }
+
+            if (depth < 0) {
+                return null
+            }
+        }
+
+        if (
+            depth != 0 ||
+            commaIndex <= 0 ||
+            commaIndex >=
+                inner.lastIndex
+        ) {
+            return null
+        }
+
+        val left =
+            inner
+                .substring(
+                    0,
+                    commaIndex
+                )
+                .trim()
+
+        val right =
+            inner
+                .substring(
+                    commaIndex + 1
+                )
+                .trim()
+
+        if (
+            left.isBlank() ||
+            right.isBlank()
+        ) {
+            return null
+        }
+
+        return CrossExpression(
+            kind = kind,
+            left = left,
+            right = right
+        )
     }
 
     private fun splitTopLevel(
