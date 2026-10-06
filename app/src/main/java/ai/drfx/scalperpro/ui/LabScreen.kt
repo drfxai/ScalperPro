@@ -4,26 +4,45 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ai.drfx.scalperpro.ai.LabTaskType
+import ai.drfx.scalperpro.ai.ScalperAgentTeam
+import ai.drfx.scalperpro.ai.ScalperAgentWorkflowPlanner
 import ai.drfx.scalperpro.code.CodeArtifact
 import ai.drfx.scalperpro.code.Mql5StudioEngine
+import ai.drfx.scalperpro.code.PineIndicatorGenerator
+import ai.drfx.scalperpro.code.PineStaticAnalyzer
 import ai.drfx.scalperpro.code.PineStudioEngine
+import ai.drfx.scalperpro.indicator.IndicatorTemplateCatalog
+import ai.drfx.scalperpro.lab.QuantCoderEngine
+import ai.drfx.scalperpro.lab.QuantLabCatalog
+import ai.drfx.scalperpro.lab.QuantLabChart
+import ai.drfx.scalperpro.lab.QuantRuntimeReport
 import ai.drfx.scalperpro.strategy.DirectionPermission
 import ai.drfx.scalperpro.strategy.MarketType
 import ai.drfx.scalperpro.strategy.StopDefinition
@@ -36,17 +55,31 @@ import ai.drfx.scalperpro.strategy.TakeProfitDefinition
 import ai.drfx.scalperpro.strategy.TakeProfitMethod
 
 internal enum class LabMode {
+    AI_BUILDER,
+    INDICATOR,
     SPECIFICATION,
     PINE,
-    MQL5
+    MQL5,
+    CHART
 }
 
 @Composable
 internal fun LabScreen(
     onHome: () -> Unit,
-    initialMode: LabMode = LabMode.SPECIFICATION
+    initialMode: LabMode = LabMode.AI_BUILDER
 ) {
-    val specification = remember {
+    val context = LocalContext.current
+    val quantEngine = remember { QuantCoderEngine(context) }
+
+    DisposableEffect(quantEngine) {
+        onDispose { quantEngine.destroy() }
+    }
+
+    val indicatorSpecification = remember {
+        IndicatorTemplateCatalog.emaRsiTrend
+    }
+
+    val strategySpecification = remember {
         StrategySpecification(
             name = "Gold EMA RSI",
             market = MarketType.METALS,
@@ -82,109 +115,646 @@ internal fun LabScreen(
         )
     }
 
-    val validation = remember(specification) {
-        StrategySpecificationValidator.validate(specification)
+    val strategyValidation = remember(strategySpecification) {
+        StrategySpecificationValidator.validate(strategySpecification)
     }
-    val pine = remember(specification) {
-        PineStudioEngine.generate(specification)
+    val indicatorPine = remember(indicatorSpecification) {
+        PineIndicatorGenerator.generate(indicatorSpecification)
     }
-    val mql5 = remember(specification) {
-        Mql5StudioEngine.generate(specification)
+    val strategyPine = remember(strategySpecification) {
+        PineStudioEngine.generate(strategySpecification)
+    }
+    val mql5 = remember(strategySpecification) {
+        Mql5StudioEngine.generate(strategySpecification)
     }
 
     var mode by remember(initialMode) { mutableStateOf(initialMode) }
+    var builderPrompt by remember {
+        mutableStateOf(
+            "Build a beginner-friendly XAUUSD 15m trend indicator with EMA 50/200, RSI confirmation, alerts and no repainting."
+        )
+    }
+    var taskType by remember { mutableStateOf(LabTaskType.INDICATOR_BUILD) }
+    var pineEditor by remember { mutableStateOf(indicatorPine.source) }
+    var runtimeReport by remember { mutableStateOf<QuantRuntimeReport?>(null) }
 
     Column(Modifier.fillMaxSize()) {
-        PageHeader("Strategy Lab", onHome)
+        PageHeader("Scalper Pro Quant Lab", onHome)
 
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(onClick = { mode = LabMode.SPECIFICATION }) { Text("Spec") }
-            Button(onClick = { mode = LabMode.PINE }) { Text("Pine") }
-            Button(onClick = { mode = LabMode.MQL5 }) { Text("MQL5") }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.AI_BUILDER },
+                    label = { Text("AI Builder") }
+                )
+            }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.INDICATOR },
+                    label = { Text("Indicator") }
+                )
+            }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.SPECIFICATION },
+                    label = { Text("Strategy") }
+                )
+            }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.PINE },
+                    label = { Text("Pine") }
+                )
+            }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.CHART },
+                    label = { Text("Chart Lab") }
+                )
+            }
+            item {
+                AssistChip(
+                    onClick = { mode = LabMode.MQL5 },
+                    label = { Text("MQL5") }
+                )
+            }
         }
 
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(
-                        Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(specification.name, fontWeight = FontWeight.Bold)
-                        Text(
-                            specification.symbol + " • " +
-                                specification.primaryTimeframe + " • Risk " +
-                                specification.risk.riskPercentPerTrade + "%"
-                        )
-                        Text(
-                            if (validation.valid) {
-                                "Strategy Specification: VALID"
-                            } else {
-                                "Strategy Specification: INVALID"
-                            },
-                            color = if (validation.valid) {
-                                MaterialTheme.colorScheme.secondary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            }
-                        )
-                        validation.errors.forEach { error ->
-                            Text(error, color = MaterialTheme.colorScheme.error)
+        Spacer(Modifier.height(8.dp))
+
+        when (mode) {
+            LabMode.AI_BUILDER -> AiBuilderPanel(
+                prompt = builderPrompt,
+                onPromptChange = { builderPrompt = it },
+                taskType = taskType,
+                onTaskTypeChange = { taskType = it },
+                onOpenIndicator = {
+                    pineEditor = indicatorPine.source
+                    mode = LabMode.INDICATOR
+                },
+                onOpenStrategy = {
+                    pineEditor = strategyPine.source
+                    mode = LabMode.SPECIFICATION
+                }
+            )
+
+            LabMode.INDICATOR -> IndicatorForgePanel(
+                artifact = indicatorPine,
+                onSendToPine = {
+                    pineEditor = indicatorPine.source
+                    runtimeReport = null
+                    mode = LabMode.PINE
+                },
+                onOpenChart = { mode = LabMode.CHART }
+            )
+
+            LabMode.SPECIFICATION -> StrategyForgePanel(
+                specification = strategySpecification,
+                isValid = strategyValidation.valid,
+                errors = strategyValidation.errors,
+                onSendToPine = {
+                    pineEditor = strategyPine.source
+                    runtimeReport = null
+                    mode = LabMode.PINE
+                },
+                onOpenChart = { mode = LabMode.CHART }
+            )
+
+            LabMode.PINE -> PineLabPanel(
+                code = pineEditor,
+                onCodeChange = {
+                    pineEditor = it
+                    runtimeReport = null
+                },
+                report = runtimeReport,
+                onAnalyze = {
+                    quantEngine.analyze(pineEditor) { report ->
+                        runtimeReport = report
+                    }
+                },
+                onOpenChart = { mode = LabMode.CHART }
+            )
+
+            LabMode.MQL5 -> CodeArtifactPanel(
+                title = "MQL5 / MetaTrader Studio",
+                artifact = mql5,
+                note = "Generated code is static-reviewed only until a real MetaEditor compile worker is connected."
+            )
+
+            LabMode.CHART -> ChartLabPanel(
+                onBackToPine = { mode = LabMode.PINE }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AiBuilderPanel(
+    prompt: String,
+    onPromptChange: (String) -> Unit,
+    taskType: LabTaskType,
+    onTaskTypeChange: (LabTaskType) -> Unit,
+    onOpenIndicator: () -> Unit,
+    onOpenStrategy: () -> Unit
+) {
+    val plan = remember(taskType) {
+        ScalperAgentWorkflowPlanner.plan(taskType)
+    }
+
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        "AI Specialist Team",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Inspired by the multi-agent supervisor architecture from DrFXQuant Hyperion. Each specialist has one job, so planning, Pine engineering and QA stay separate.",
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
+        item {
+            OutlinedTextField(
+                value = prompt,
+                onValueChange = onPromptChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Describe what you want to build") },
+                minLines = 4
+            )
+        }
+
+        item {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(
+                    listOf(
+                        LabTaskType.INDICATOR_BUILD,
+                        LabTaskType.STRATEGY_BUILD,
+                        LabTaskType.PINE_REVIEW,
+                        LabTaskType.PINE_REPAIR,
+                        LabTaskType.MQL5_TRANSLATE
+                    )
+                ) { type ->
+                    AssistChip(
+                        onClick = { onTaskTypeChange(type) },
+                        label = { Text(type.name.replace('_', ' ')) }
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text("Agent Plan", fontWeight = FontWeight.Bold)
+                    plan.steps.forEach { step ->
+                        val agent = ScalperAgentTeam.agents.firstOrNull {
+                            it.role == step.role
                         }
+                        Text(
+                            step.index.toString() + ". " +
+                                (agent?.title ?: step.role.name) +
+                                " — " + step.objective
+                        )
                     }
                 }
             }
+        }
 
-            when (mode) {
-                LabMode.SPECIFICATION -> {
-                    item {
-                        Card(Modifier.fillMaxWidth()) {
-                            Column(
-                                Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text("Single Source of Truth", fontWeight = FontWeight.Bold)
-                                Text("Market: " + specification.market.name)
-                                Text("Direction: " + specification.directionPermission.name)
-                                Text("Stop: " + specification.stop.method.name + " " + specification.stop.value)
-                                Text("Target: " + specification.takeProfit.method.name + " " + specification.takeProfit.value)
-                                Text("Cooldown bars: " + specification.cooldownBars)
-                                Text("Pyramiding: " + specification.pyramiding)
-                                specification.entryConditions.forEachIndexed { index, condition ->
-                                    Text(
-                                        "Entry " + (index + 1) + ": " +
-                                            condition.description + " → " + condition.expression
-                                    )
-                                }
-                            }
-                        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onOpenIndicator) {
+                    Text("Open Indicator Forge")
+                }
+                Button(onClick = onOpenStrategy) {
+                    Text("Open Strategy Forge")
+                }
+            }
+        }
+
+        item {
+            Text(
+                "Live multi-agent execution will use the trusted Scalper AI Gateway. The Android app does not store Gemini or 9Router secrets.",
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+    }
+}
+
+@Composable
+private fun IndicatorForgePanel(
+    artifact: CodeArtifact,
+    onSendToPine: () -> Unit,
+    onOpenChart: () -> Unit
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    Text(
+                        "Indicator Forge",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        IndicatorTemplateCatalog.emaRsiTrend.beginnerExplanation,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        "Repaint policy: " +
+                            IndicatorTemplateCatalog.emaRsiTrend.repaintPolicy.name
+                    )
+                    Text(
+                        "Designed TFs: " +
+                            IndicatorTemplateCatalog.emaRsiTrend.designedTimeframes.joinToString(" • ")
+                    )
+                }
+            }
+        }
+
+        item {
+            Text("Toolbox", fontWeight = FontWeight.Bold)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(
+                    QuantLabCatalog.tools.filter {
+                        it.category.name in setOf(
+                            "INDICATOR",
+                            "PINE",
+                            "QA",
+                            "BACKTEST"
+                        )
                     }
+                ) { tool ->
+                    AssistChip(
+                        onClick = { },
+                        label = { Text(tool.title) }
+                    )
                 }
+            }
+        }
 
-                LabMode.PINE -> {
-                    item { CodeArtifactCard("Pine Script Studio", pine) }
+        item {
+            Text("Timeframes", fontWeight = FontWeight.Bold)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(QuantLabCatalog.timeframes) { timeframe ->
+                    AssistChip(
+                        onClick = { },
+                        label = { Text(timeframe.code) }
+                    )
                 }
+            }
+        }
 
-                LabMode.MQL5 -> {
-                    item { CodeArtifactCard("MQL5 Studio", mql5) }
-                }
+        item {
+            CodeArtifactPanel(
+                title = "Generated Pine Indicator",
+                artifact = artifact,
+                note = "Next step: run TradingView QA and the local DrFXQuant Quant Runtime before treating the visual result as verified."
+            )
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onSendToPine) { Text("Open Pine Lab") }
+                Button(onClick = onOpenChart) { Text("Open Chart") }
             }
         }
     }
 }
 
 @Composable
-private fun CodeArtifactCard(
+private fun StrategyForgePanel(
+    specification: StrategySpecification,
+    isValid: Boolean,
+    errors: List<String>,
+    onSendToPine: () -> Unit,
+    onOpenChart: () -> Unit
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        "Strategy Forge",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        specification.name + " • " +
+                            specification.symbol + " • " +
+                            specification.primaryTimeframe
+                    )
+                    Text(
+                        if (isValid) "Strategy Specification: VALID"
+                        else "Strategy Specification: INVALID",
+                        color = if (isValid) {
+                            MaterialTheme.colorScheme.secondary
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        }
+                    )
+                    errors.forEach {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                    Text(
+                        "Entry rules: " +
+                            specification.entryConditions.joinToString(" + ") {
+                                it.description
+                            }
+                    )
+                    Text("Stop: " + specification.stop.method.name)
+                    Text("Target: " + specification.takeProfit.method.name)
+                    Text("Direction: " + specification.directionPermission.name)
+                }
+            }
+        }
+
+        item {
+            Text("Strategy Library", fontWeight = FontWeight.Bold)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(QuantLabCatalog.strategyArchetypes) { item ->
+                    AssistChip(
+                        onClick = { },
+                        label = { Text(item.title) }
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text("Quality gates", fontWeight = FontWeight.Bold)
+                    QuantLabCatalog.pineQualityRules.forEach { rule ->
+                        Text(
+                            rule.severity + " • " +
+                                rule.title + " — " +
+                                rule.description
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onSendToPine) { Text("Generate / Review Pine") }
+                Button(onClick = onOpenChart) { Text("Chart Sandbox") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PineLabPanel(
+    code: String,
+    onCodeChange: (String) -> Unit,
+    report: QuantRuntimeReport?,
+    onAnalyze: () -> Unit,
+    onOpenChart: () -> Unit
+) {
+    val findings = remember(code) {
+        PineStaticAnalyzer.analyze(code)
+    }
+
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        "Pine Script Laboratory",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Generate → review → local Quant Runtime → chart → deterministic strategy backtest.",
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
+        item {
+            OutlinedTextField(
+                value = code,
+                onValueChange = onCodeChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Pine source") },
+                minLines = 16,
+                textStyle = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = FontFamily.Monospace
+                )
+            )
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onAnalyze) {
+                    Text("Run Quant Runtime")
+                }
+                Button(onClick = onOpenChart) {
+                    Text("Open Chart Sandbox")
+                }
+            }
+        }
+
+        if (findings.isNotEmpty()) {
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Text("TradingView QA", fontWeight = FontWeight.Bold)
+                        findings.forEach { finding ->
+                            Text(
+                                finding.severity + " • " +
+                                    finding.code + " • " +
+                                    finding.message
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        report?.let { runtime ->
+            item {
+                QuantRuntimeReportCard(runtime)
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuantRuntimeReportCard(
+    report: QuantRuntimeReport
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text(
+                "DrFXQuant Runtime Report",
+                fontWeight = FontWeight.Bold
+            )
+            if (!report.ok) {
+                Text(
+                    report.error ?: "Runtime failed.",
+                    color = MaterialTheme.colorScheme.error
+                )
+                return@Column
+            }
+
+            Text(
+                report.title + " • Pine v" +
+                    report.pineVersion + " • " +
+                    if (report.overlay) "overlay" else "separate pane"
+            )
+            Text(
+                "Lines " + report.lineCount +
+                    " • AST nodes " + report.nodeCount +
+                    " • runtime " + report.runtimeMs + "ms"
+            )
+            Text(
+                "Plots " + report.plots +
+                    " • Shapes " + report.shapes +
+                    " • Inputs " + report.inputs.size
+            )
+            Text(
+                "Plot activity: " +
+                    report.plotActivity.joinToString(prefix = "[", postfix = "]")
+            )
+
+            if (report.isStrategy && report.strategyOrders > 0) {
+                Text(
+                    "This legacy Quant Runtime visualizes chart logic but does not simulate strategy orders. Scalper Backtest handles strategy execution separately.",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
+
+            if (report.parseErrors.isNotEmpty()) {
+                Text(
+                    "Parse errors: " + report.parseErrors.size,
+                    color = MaterialTheme.colorScheme.error
+                )
+                report.parseErrors.take(8).forEach { Text(it) }
+            }
+
+            if (report.unsupported.isNotEmpty()) {
+                Text(
+                    "Unsupported constructs: " + report.unsupported.size,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+                report.unsupported.take(8).forEach { Text(it) }
+            }
+
+            if (report.parseErrors.isEmpty() && report.unsupported.isEmpty()) {
+                Text(
+                    "Local compatibility check completed without reported skips.",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChartLabPanel(
+    onBackToPine: () -> Unit
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "Interactive Chart Sandbox",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "TradingView Lightweight Charts 5.2.0 is embedded as the chart layer. The current sandbox uses deterministic sample candles while provider-backed datasets are still disconnected.",
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                QuantLabChart(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(390.dp)
+                )
+            }
+        }
+
+        item {
+            Text(
+                "The DrFXQuant Pine runtime is now local inside the Android project. The next chart step is mapping its plot/shape output directly onto this sandbox.",
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+
+        item {
+            TextButton(onClick = onBackToPine) {
+                Text("Back to Pine Lab")
+            }
+        }
+    }
+}
+
+@Composable
+private fun CodeArtifactPanel(
     title: String,
-    artifact: CodeArtifact
+    artifact: CodeArtifact,
+    note: String
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(
@@ -196,15 +766,14 @@ private fun CodeArtifactCard(
                 "Verification: " + artifact.verificationStatus.name,
                 color = MaterialTheme.colorScheme.tertiary
             )
-
-            if (artifact.findings.isNotEmpty()) {
-                artifact.findings.forEach { finding ->
-                    Text(
-                        finding.severity + " • " + finding.code + " • " + finding.message
-                    )
-                }
+            Text(note)
+            artifact.findings.forEach { finding ->
+                Text(
+                    finding.severity + " • " +
+                        finding.code + " • " +
+                        finding.message
+                )
             }
-
             Text(
                 artifact.source,
                 fontFamily = FontFamily.Monospace
