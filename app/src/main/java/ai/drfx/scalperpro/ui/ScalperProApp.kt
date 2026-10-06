@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,13 +39,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import ai.drfx.scalperpro.core.MarketQuote
-import ai.drfx.scalperpro.core.Signal
-import ai.drfx.scalperpro.core.StrategyCodeGenerator
-import ai.drfx.scalperpro.core.StrategySpec
 import ai.drfx.scalperpro.galaxy.GalaxyGraphView
 
-private enum class Destination { Home, Markets, Signals, AI, Lab, Learn, About }
+internal enum class Destination {
+    Home, Markets, News, Signals, AI, Lab, Learn, About
+}
 
 private val DarkScheme = darkColorScheme(
     primary = Color(0xFF8B5CF6),
@@ -78,19 +74,20 @@ fun ScalperProApp() {
             Scaffold(
                 bottomBar = {
                     NavigationBar(modifier = Modifier.navigationBarsPadding()) {
-                        val items = listOf(
+                        listOf(
                             Destination.Markets to "Markets",
                             Destination.Signals to "Signals",
                             Destination.AI to "AI",
                             Destination.Lab to "Lab",
                             Destination.Learn to "Learn"
-                        )
-                        items.forEach { item ->
+                        ).forEach { item ->
+                            val target = item.first
+                            val label = item.second
                             NavigationBarItem(
-                                selected = destination == item.first,
-                                onClick = { destination = item.first },
-                                icon = { Text(if (destination == item.first) "●" else "○") },
-                                label = { Text(item.second) }
+                                selected = destination == target,
+                                onClick = { destination = target },
+                                icon = { Text(if (destination == target) "●" else "○") },
+                                label = { Text(label) }
                             )
                         }
                     }
@@ -104,7 +101,11 @@ fun ScalperProApp() {
                             onToggleTheme = { darkTheme = !darkTheme },
                             onAbout = { destination = Destination.About }
                         )
-                        Destination.Markets -> MarketsScreen { destination = Destination.Home }
+                        Destination.Markets -> MarketsScreen(
+                            onHome = { destination = Destination.Home },
+                            onNews = { destination = Destination.News }
+                        )
+                        Destination.News -> NewsScreen { destination = Destination.Home }
                         Destination.Signals -> SignalsScreen { destination = Destination.Home }
                         Destination.AI -> AiScreen { destination = Destination.Home }
                         Destination.Lab -> LabScreen { destination = Destination.Home }
@@ -129,12 +130,16 @@ private fun HomeScreen(
 
     Box(Modifier.fillMaxSize().background(Color(0xFF05060A))) {
         AndroidView(
-            factory = { context -> GalaxyGraphView(context) { selectedNode = it } },
+            factory = { context ->
+                GalaxyGraphView(context) { node -> selectedNode = node }
+            },
             modifier = Modifier.fillMaxSize()
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -146,19 +151,21 @@ private fun HomeScreen(
                     Text("AI TRADING INTELLIGENCE • V1.0.0", color = Color(0xFF8DE8FA))
                 }
                 Row {
-                    TextButton(onClick = onToggleTheme) { Text(if (darkTheme) "Light" else "Dark") }
+                    TextButton(onClick = onToggleTheme) {
+                        Text(if (darkTheme) "Light" else "Dark")
+                    }
                     TextButton(onClick = onAbout) { Text("About") }
                 }
             }
+
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0x8A111527)),
                 shape = RoundedCornerShape(18.dp)
             ) {
-                Text(
-                    "Selected: " + selectedNode + "   •   AUTO ORBIT: ON",
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                )
+                Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Text("Selected: " + selectedNode, color = Color.White)
+                    Text("AUTO ORBIT: ON", color = Color(0xFF8DE8FA))
+                }
             }
         }
 
@@ -169,18 +176,35 @@ private fun HomeScreen(
                 .padding(12.dp)
         ) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                val quick = listOf("Analyze Chart", "Build Strategy", "Generate Pine", "Generate MQL5", "News Summary")
-                items(quick) { action ->
-                    AssistChip(onClick = {
-                        prompt = action
-                        when (action) {
-                            "Build Strategy", "Generate Pine", "Generate MQL5" -> onNavigate(Destination.Lab)
-                            else -> onNavigate(Destination.AI)
-                        }
-                    }, label = { Text(action) })
+                items(
+                    listOf(
+                        "Analyze Chart",
+                        "Build Strategy",
+                        "Generate Pine",
+                        "Generate MQL5",
+                        "News Summary",
+                        "Live Signals"
+                    )
+                ) { action ->
+                    AssistChip(
+                        onClick = {
+                            prompt = action
+                            when (action) {
+                                "Build Strategy",
+                                "Generate Pine",
+                                "Generate MQL5" -> onNavigate(Destination.Lab)
+                                "News Summary" -> onNavigate(Destination.News)
+                                "Live Signals" -> onNavigate(Destination.Signals)
+                                else -> onNavigate(Destination.AI)
+                            }
+                        },
+                        label = { Text(action) }
+                    )
                 }
             }
+
             Spacer(Modifier.height(8.dp))
+
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xE8111420)),
                 shape = RoundedCornerShape(22.dp)
@@ -206,7 +230,7 @@ private fun HomeScreen(
 }
 
 @Composable
-private fun PageHeader(title: String, onHome: () -> Unit) {
+internal fun PageHeader(title: String, onHome: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -221,149 +245,14 @@ private fun PageHeader(title: String, onHome: () -> Unit) {
 }
 
 @Composable
-private fun MarketsScreen(onHome: () -> Unit) {
-    val quotes = listOf(
-        MarketQuote("XAUUSD", "—", 0.0),
-        MarketQuote("EURUSD", "—", 0.0),
-        MarketQuote("BTCUSD", "—", 0.0),
-        MarketQuote("US100", "—", 0.0)
-    )
-    Column(Modifier.fillMaxSize()) {
-        PageHeader("Markets", onHome)
-        Text(
-            "Live market provider is not configured in this build. Values are never fabricated.",
-            modifier = Modifier.padding(horizontal = 16.dp),
-            color = MaterialTheme.colorScheme.tertiary
-        )
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(quotes) { q ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column { Text(q.symbol, fontWeight = FontWeight.Bold); Text("Provider required") }
-                        Text(q.price)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SignalsScreen(onHome: () -> Unit) {
-    val signals = listOf(
-        Signal("XAUUSD", "WAITING", "Provider required", "—", "—", "—", "NOT LIVE"),
-        Signal("EURUSD", "WAITING", "Provider required", "—", "—", "—", "NOT LIVE")
-    )
-    Column(Modifier.fillMaxSize()) {
-        PageHeader("Signals", onHome)
-        Text(
-            "Signal history is designed to be auditable. No live signal source is configured yet.",
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(signals) { s ->
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(s.symbol + " • " + s.side, fontWeight = FontWeight.Bold)
-                        Text("Entry: " + s.entry)
-                        Text("Status: " + s.status)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AiScreen(onHome: () -> Unit) {
-    var message by remember { mutableStateOf("") }
-    Column(Modifier.fillMaxSize()) {
-        PageHeader("Scalper AI", onHome)
-        Card(Modifier.fillMaxWidth().padding(16.dp)) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Provider architecture", fontWeight = FontWeight.Bold)
-                Text("Gemini Direct: gemini-3.8-flash")
-                Text("9Router: Smart / Combo compatible")
-                Text("Security: provider secrets belong on the trusted backend, never in the APK.")
-                Text("Status: BACKEND NOT CONFIGURED", color = MaterialTheme.colorScheme.tertiary)
-            }
-        }
-        TextField(
-            value = message,
-            onValueChange = { message = it },
-            placeholder = { Text("Describe a setup or ask for analysis…") },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-        )
-        Text(
-            "The Android client intentionally does not accept raw provider API keys until a trusted Scalper AI Gateway is deployed.",
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
-
-@Composable
-private fun LabScreen(onHome: () -> Unit) {
-    val spec = remember {
-        StrategySpec(
-            name = "Gold EMA RSI",
-            symbol = "XAUUSD",
-            timeframe = "15m",
-            trendRule = "EMA50 > EMA200",
-            entryRule = "RSI crosses above 50",
-            stopRule = "1.5 ATR",
-            targetRule = "3 ATR",
-            session = "London",
-            riskPercent = 1.0
-        )
-    }
-    var codeType by remember { mutableStateOf("Pine") }
-    val code = if (codeType == "Pine") StrategyCodeGenerator.pine(spec) else StrategyCodeGenerator.mql5(spec)
-
-    Column(Modifier.fillMaxSize()) {
-        PageHeader("Strategy Lab", onHome)
-        Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { codeType = "Pine" }) { Text("Pine") }
-            Button(onClick = { codeType = "MQL5" }) { Text("MQL5") }
-        }
-        Card(Modifier.fillMaxWidth().padding(16.dp)) {
-            Column(Modifier.padding(16.dp)) {
-                Text(spec.name, fontWeight = FontWeight.Bold)
-                Text(spec.symbol + " • " + spec.timeframe + " • Risk " + spec.riskPercent + "%")
-                Spacer(Modifier.height(8.dp))
-                Text(code)
-            }
-        }
-    }
-}
-
-@Composable
-private fun LearnScreen(onHome: () -> Unit) {
-    val topics = listOf(
-        "Forex Basics", "Market Structure", "Technical Analysis", "Price Action",
-        "SMC", "ICT", "Risk Management", "Trading Psychology", "Macro",
-        "News Trading", "Gold", "Crypto", "Pine Script", "MQL5", "Quantitative Trading"
-    )
-    Column(Modifier.fillMaxSize()) {
-        PageHeader("Traderpedia & Academy", onHome)
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(topics) { topic ->
-                Card(Modifier.fillMaxWidth()) {
-                    Text(topic, modifier = Modifier.padding(16.dp), fontWeight = FontWeight.SemiBold)
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun AboutScreen(onHome: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
         PageHeader("About", onHome)
         Card(Modifier.fillMaxWidth().padding(16.dp)) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text("Scalper Pro", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text("Version 1.0.0")
                 Text("Developed by DrFXAi")
