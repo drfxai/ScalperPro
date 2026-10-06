@@ -27,95 +27,94 @@ object LocalHistoricalDataLoader {
                 }.getOrNull()
 
             if (stream == null) {
-                return@withContext
-                    HistoricalCsvParseResult
-                        .Failure(
-                            listOf(
-                                "Unable to open the selected file."
-                            )
+                HistoricalCsvParseResult
+                    .Failure(
+                        listOf(
+                            "Unable to open the selected file."
                         )
-            }
+                    )
+            } else {
+                val readResult =
+                    runCatching {
+                        stream.use { input ->
+                            InputStreamReader(
+                                input,
+                                Charsets.UTF_8
+                            ).use { reader ->
+                                val output =
+                                    StringBuilder()
+                                val buffer =
+                                    CharArray(8_192)
+                                var tooLarge =
+                                    false
 
-            val readResult =
-                runCatching {
-                    stream.use { input ->
-                        InputStreamReader(
-                            input,
-                            Charsets.UTF_8
-                        ).use { reader ->
-                            val output =
-                                StringBuilder()
-                            val buffer =
-                                CharArray(8_192)
-                            var tooLarge =
-                                false
+                                while (true) {
+                                    val read =
+                                        reader.read(
+                                            buffer
+                                        )
 
-                            while (true) {
-                                val read =
-                                    reader.read(
-                                        buffer
+                                    if (read < 0) {
+                                        break
+                                    }
+
+                                    if (
+                                        output.length +
+                                            read >
+                                            MAX_READ_CHARS
+                                    ) {
+                                        tooLarge =
+                                            true
+                                        break
+                                    }
+
+                                    output.append(
+                                        buffer,
+                                        0,
+                                        read
                                     )
-
-                                if (read < 0) {
-                                    break
                                 }
 
-                                if (
-                                    output.length +
-                                        read >
-                                        MAX_READ_CHARS
-                                ) {
-                                    tooLarge =
-                                        true
-                                    break
+                                if (tooLarge) {
+                                    null
+                                } else {
+                                    output
+                                        .toString()
                                 }
-
-                                output.append(
-                                    buffer,
-                                    0,
-                                    read
-                                )
-                            }
-
-                            if (tooLarge) {
-                                null
-                            } else {
-                                output.toString()
                             }
                         }
                     }
+
+                val text =
+                    readResult
+                        .getOrNull()
+
+                when {
+                    readResult.isFailure ->
+                        HistoricalCsvParseResult
+                            .Failure(
+                                listOf(
+                                    "Unable to read the selected CSV file."
+                                )
+                            )
+
+                    text == null ->
+                        HistoricalCsvParseResult
+                            .Failure(
+                                listOf(
+                                    "Selected CSV exceeds the local importer size limit."
+                                )
+                            )
+
+                    else ->
+                        HistoricalCsvParser
+                            .parse(
+                                text = text,
+                                symbol = symbol,
+                                timeframe =
+                                    timeframe
+                            )
                 }
-
-            val text =
-                readResult
-                    .getOrNull()
-
-            if (
-                readResult.isFailure
-            ) {
-                return@withContext
-                    HistoricalCsvParseResult
-                        .Failure(
-                            listOf(
-                                "Unable to read the selected CSV file."
-                            )
-                        )
             }
-
-            if (text == null) {
-                return@withContext
-                    HistoricalCsvParseResult
-                        .Failure(
-                            listOf(
-                                "Selected CSV exceeds the local importer size limit."
-                            )
-                        )
-            }
-
-            HistoricalCsvParser.parse(
-                text = text,
-                symbol = symbol,
-                timeframe = timeframe
-            )
         }
 }

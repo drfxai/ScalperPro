@@ -461,13 +461,14 @@ object HistoricalCsvParser {
 
                 val time =
                     find(
-                        timestampAliases
-                            .map {
-                                normalizeHeader(
-                                    it
-                                )
-                            }
-                            .toSet()
+                        setOf(
+                            "time",
+                            "timestamp",
+                            "datetime",
+                            "date",
+                            "opentime",
+                            "open_time"
+                        )
                     ) ?: return null
 
                 val open =
