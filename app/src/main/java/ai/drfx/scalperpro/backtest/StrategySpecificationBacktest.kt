@@ -970,7 +970,7 @@ object StrategyExpressionEngine {
             if (
                 depth == 0 &&
                 expression.regionMatches(
-                    index = index,
+                    thisOffset = index,
                     other = delimiter,
                     otherOffset = 0,
                     length =
