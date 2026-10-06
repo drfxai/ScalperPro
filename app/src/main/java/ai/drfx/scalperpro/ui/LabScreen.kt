@@ -246,6 +246,7 @@ internal fun LabScreen(
             )
 
             LabMode.CHART -> ChartLabPanel(
+                report = runtimeReport,
                 onBackToPine = { mode = LabMode.PINE }
             )
         }
@@ -700,6 +701,7 @@ private fun QuantRuntimeReportCard(
 
 @Composable
 private fun ChartLabPanel(
+    report: QuantRuntimeReport?,
     onBackToPine: () -> Unit
 ) {
     LazyColumn(
@@ -728,6 +730,7 @@ private fun ChartLabPanel(
         item {
             Card(Modifier.fillMaxWidth()) {
                 QuantLabChart(
+                    report = report,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(390.dp)
@@ -737,7 +740,11 @@ private fun ChartLabPanel(
 
         item {
             Text(
-                "The DrFXQuant Pine runtime is now local inside the Android project. The next chart step is mapping its plot/shape output directly onto this sandbox.",
+                if (report?.ok == true && report.plotSeries.isNotEmpty()) {
+                    "Runtime plot series are mapped into this chart. Shape/label primitives are the next renderer step."
+                } else {
+                    "Run Quant Runtime from Pine Lab first to replace the sample EMA with generated script plot output."
+                },
                 color = MaterialTheme.colorScheme.tertiary
             )
         }
