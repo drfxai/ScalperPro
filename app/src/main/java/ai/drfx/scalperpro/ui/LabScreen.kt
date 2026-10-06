@@ -24,15 +24,20 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ai.drfx.scalperpro.ai.AiLabExecutionResult
+import ai.drfx.scalperpro.ai.AiRoutingMode
 import ai.drfx.scalperpro.ai.LabTaskType
 import ai.drfx.scalperpro.ai.ScalperAgentTeam
 import ai.drfx.scalperpro.ai.ScalperAgentWorkflowPlanner
+import ai.drfx.scalperpro.ai.ScalperAiGatewayClient
+import ai.drfx.scalperpro.ai.ScalperAiGatewayConfig
 import ai.drfx.scalperpro.code.CodeArtifact
 import ai.drfx.scalperpro.code.Mql5StudioEngine
 import ai.drfx.scalperpro.code.PineIndicatorGenerator
@@ -53,6 +58,7 @@ import ai.drfx.scalperpro.strategy.StrategySpecification
 import ai.drfx.scalperpro.strategy.StrategySpecificationValidator
 import ai.drfx.scalperpro.strategy.TakeProfitDefinition
 import ai.drfx.scalperpro.strategy.TakeProfitMethod
+import kotlinx.coroutines.launch
 
 internal enum class LabMode {
     AI_BUILDER,
@@ -70,6 +76,8 @@ internal fun LabScreen(
 ) {
     val context = LocalContext.current
     val quantEngine = remember { QuantCoderEngine(context) }
+    val aiGatewayClient = remember { ScalperAiGatewayClient() }
+    val coroutineScope = rememberCoroutineScope()
 
     DisposableEffect(quantEngine) {
         onDispose { quantEngine.destroy() }
@@ -135,6 +143,9 @@ internal fun LabScreen(
         )
     }
     var taskType by remember { mutableStateOf(LabTaskType.INDICATOR_BUILD) }
+    var aiRoutingMode by remember { mutableStateOf(AiRoutingMode.GEMINI_DIRECT) }
+    var aiRunning by remember { mutableStateOf(false) }
+    var aiExecution by remember { mutableStateOf<AiLabExecutionResult?>(null) }
     var pineEditor by remember { mutableStateOf(indicatorPine.source) }
     var runtimeReport by remember { mutableStateOf<QuantRuntimeReport?>(null) }
 
