@@ -615,7 +615,7 @@ object StrategyExpressionEngine {
                     previousLeft >=
                         previousRight &&
                         currentLeft <
-                        previousRight
+                        currentRight
 
                 else ->
                     null
