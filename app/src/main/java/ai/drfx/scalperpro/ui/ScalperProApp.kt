@@ -84,12 +84,18 @@ private val LightScheme = lightColorScheme(
 fun ScalperProApp() {
     var darkTheme by remember { mutableStateOf(true) }
     var destination by remember { mutableStateOf(Destination.Home) }
-    var labMode by remember { mutableStateOf(LabMode.SPECIFICATION) }
+    var labMode by remember { mutableStateOf(LabMode.AI_BUILDER) }
+    var aiDraft by remember { mutableStateOf("") }
     val colors = if (darkTheme) DarkScheme else LightScheme
 
     fun openLab(mode: LabMode) {
         labMode = mode
         destination = Destination.Lab
+    }
+
+    fun openAi(message: String = "") {
+        aiDraft = message
+        destination = Destination.AI
     }
 
     LaunchedEffect(destination) {
@@ -136,6 +142,7 @@ fun ScalperProApp() {
                         Destination.Home -> HomeScreen(
                             onNavigate = { destination = it },
                             onOpenLab = { openLab(it) },
+                            onAskAi = { openAi(it) },
                             darkTheme = darkTheme,
                             onToggleTheme = { darkTheme = !darkTheme },
                             onAbout = { destination = Destination.About }
@@ -150,9 +157,15 @@ fun ScalperProApp() {
                         Destination.Signals -> SignalsScreen {
                             destination = Destination.Home
                         }
-                        Destination.AI -> AiScreen {
-                            destination = Destination.Home
-                        }
+                        Destination.AI -> AiScreen(
+                            onHome = {
+                                destination = Destination.Home
+                            },
+                            initialMessage = aiDraft,
+                            onInitialMessageConsumed = {
+                                aiDraft = ""
+                            }
+                        )
                         Destination.ChartVision -> ChartVisionScreen {
                             destination = Destination.Home
                         }
@@ -208,6 +221,7 @@ fun ScalperProApp() {
 private fun HomeScreen(
     onNavigate: (Destination) -> Unit,
     onOpenLab: (LabMode) -> Unit,
+    onAskAi: (String) -> Unit,
     darkTheme: Boolean,
     onToggleTheme: () -> Unit,
     onAbout: () -> Unit
@@ -248,7 +262,11 @@ private fun HomeScreen(
                 selectedNode.contains("Forex", ignoreCase = true) ->
                 onNavigate(Destination.Markets)
 
-            else -> onNavigate(Destination.AI)
+            else -> onAskAi(
+                "Help me understand and use " +
+                    selectedNode +
+                    " in Scalper Pro."
+            )
         }
     }
 
@@ -338,6 +356,48 @@ private fun HomeScreen(
                     }
                 }
             }
+
+            Spacer(Modifier.height(8.dp))
+
+            LazyRow(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    listOf(
+                        "AI LAB",
+                        "PINE",
+                        "QUANT LAB",
+                        "MQL5"
+                    )
+                ) { cluster ->
+                    AssistChip(
+                        onClick = {
+                            when (cluster) {
+                                "AI LAB" ->
+                                    onOpenLab(
+                                        LabMode.AI_BUILDER
+                                    )
+                                "PINE" ->
+                                    onOpenLab(
+                                        LabMode.PINE
+                                    )
+                                "QUANT LAB" ->
+                                    onOpenLab(
+                                        LabMode.CHART
+                                    )
+                                "MQL5" ->
+                                    onOpenLab(
+                                        LabMode.MQL5
+                                    )
+                            }
+                        },
+                        label = {
+                            Text(cluster)
+                        }
+                    )
+                }
+            }
         }
 
         Column(
@@ -403,7 +463,9 @@ private fun HomeScreen(
                         singleLine = true
                     )
                     TextButton(
-                        onClick = { onNavigate(Destination.AI) }
+                        onClick = {
+                            onAskAi(prompt)
+                        }
                     ) {
                         Text("🎙")
                     }
@@ -413,7 +475,10 @@ private fun HomeScreen(
                         Text("＋")
                     }
                     Button(
-                        onClick = { onNavigate(Destination.AI) }
+                        enabled = prompt.isNotBlank(),
+                        onClick = {
+                            onAskAi(prompt.trim())
+                        }
                     ) {
                         Text("Send")
                     }
