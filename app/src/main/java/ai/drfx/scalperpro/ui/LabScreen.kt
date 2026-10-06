@@ -902,6 +902,7 @@ private fun QuantRuntimeReportCard(
             Text(
                 "Plots " + report.plots +
                     " • Shapes " + report.shapes +
+                    " • Labels " + report.labelSeries.size +
                     " • Inputs " + report.inputs.size
             )
             Text(
@@ -983,10 +984,18 @@ private fun ChartLabPanel(
 
         item {
             Text(
-                if (report?.ok == true && report.plotSeries.isNotEmpty()) {
-                    "Runtime plot series are mapped into this chart. Shape/label primitives are the next renderer step."
+                if (report?.ok == true) {
+                    val markerCount =
+                        report.shapeSeries.sumOf {
+                            it.indices.size
+                        } +
+                            report.labelSeries.size
+
+                    "Runtime plots and " +
+                        markerCount +
+                        " signal/label markers are mapped into the chart. Line, box, fill and advanced drawing primitives remain a later renderer step."
                 } else {
-                    "Run Quant Runtime from Pine Lab first to replace the sample EMA with generated script plot output."
+                    "Run Quant Runtime from Pine Lab first to replace the sample EMA with generated script plot and signal output."
                 },
                 color = MaterialTheme.colorScheme.tertiary
             )
