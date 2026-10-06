@@ -4,7 +4,10 @@ import ai.drfx.scalperpro.code.Mql5StudioEngine
 import ai.drfx.scalperpro.code.PineStaticAnalyzer
 import ai.drfx.scalperpro.code.PineStudioEngine
 import ai.drfx.scalperpro.code.VerificationStatus
+import ai.drfx.scalperpro.strategy.DirectionPermission
+import ai.drfx.scalperpro.strategy.ExecutionAssumptions
 import ai.drfx.scalperpro.strategy.MarketType
+import ai.drfx.scalperpro.strategy.StrategySession
 import ai.drfx.scalperpro.strategy.StopDefinition
 import ai.drfx.scalperpro.strategy.StopMethod
 import ai.drfx.scalperpro.strategy.StrategyCondition
@@ -39,6 +42,74 @@ class CodeStudioTest {
         val artifact = PineStudioEngine.generate(spec())
         assertEquals(VerificationStatus.STATIC_ANALYZED, artifact.verificationStatus)
         assertTrue(artifact.source.contains("//@version=6"))
+    }
+
+    @Test
+    fun generatedStrategyIncludesCostsSessionCooldownStopsAndTargets() {
+        val strategy = StrategySpecification(
+            name = "Gold Long Short",
+            market = MarketType.METALS,
+            symbol = "XAUUSD",
+            primaryTimeframe = "15m",
+            entryConditions = listOf(
+                StrategyCondition(
+                    description = "Long trend",
+                    expression = "ta.ema(close, 20) > ta.ema(close, 50)"
+                )
+            ),
+            shortEntryConditions = listOf(
+                StrategyCondition(
+                    description = "Short trend",
+                    expression = "ta.ema(close, 20) < ta.ema(close, 50)"
+                )
+            ),
+            session = StrategySession(
+                timezone = "Europe/London",
+                allowedWindows = listOf("0800-1700")
+            ),
+            risk = StrategyRisk(riskPercentPerTrade = 1.0),
+            stop = StopDefinition(StopMethod.ATR_MULTIPLE, 1.5),
+            takeProfit = TakeProfitDefinition(
+                TakeProfitMethod.FIXED_R_MULTIPLE,
+                2.0
+            ),
+            execution = ExecutionAssumptions(
+                commissionPercent = 0.05,
+                slippageTicks = 2
+            ),
+            cooldownBars = 3,
+            directionPermission = DirectionPermission.BOTH
+        )
+
+        val artifact = PineStudioEngine.generate(strategy)
+
+        assertTrue(artifact.source.contains("commission_value=0.05"))
+        assertTrue(artifact.source.contains("slippage=2"))
+        assertTrue(artifact.source.contains("Europe/London"))
+        assertTrue(artifact.source.contains("cooldownBars"))
+        assertTrue(artifact.source.contains("strategy.entry(\"L\""))
+        assertTrue(artifact.source.contains("strategy.entry(\"S\""))
+        assertTrue(artifact.source.contains("strategy.exit(\"L-X\""))
+        assertTrue(artifact.source.contains("strategy.exit(\"S-X\""))
+        assertTrue(artifact.source.contains("barstate.isconfirmed"))
+        assertTrue(
+            artifact.findings.none {
+                it.code == "PINE_COMMISSION_REVIEW" ||
+                    it.code == "PINE_SLIPPAGE_REVIEW"
+            }
+        )
+    }
+
+    @Test
+    fun missingShortRulesNeverInventsShortEntries() {
+        val artifact = PineStudioEngine.generate(spec())
+
+        assertTrue(
+            artifact.findings.any {
+                it.code == "STRATEGY_SHORT_RULES_MISSING"
+            }
+        )
+        assertTrue(artifact.source.contains("shortSignal = false"))
     }
 
     @Test
