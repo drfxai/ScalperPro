@@ -38,6 +38,13 @@ data class QuantRuntimeShapeSeries(
     val indices: List<Int>
 )
 
+data class QuantRuntimeLabel(
+    val index: Int,
+    val text: String,
+    val color: String,
+    val direction: String
+)
+
 data class QuantRuntimeReport(
     val ok: Boolean,
     val title: String,
@@ -59,6 +66,7 @@ data class QuantRuntimeReport(
     val candleData: List<QuantRuntimeCandle>,
     val plotSeries: List<QuantRuntimePlotSeries>,
     val shapeSeries: List<QuantRuntimeShapeSeries>,
+    val labelSeries: List<QuantRuntimeLabel>,
     val runtimeMs: Long,
     val engine: String,
     val error: String?
@@ -197,6 +205,9 @@ class QuantCoderEngine(
                 shapeSeries = parseShapeSeries(
                     json.optJSONArray("shapeSeries")
                 ),
+                labelSeries = parseLabels(
+                    json.optJSONArray("labelSeries")
+                ),
                 runtimeMs = json.optLong(
                     "runtimeMs",
                     0L
@@ -241,6 +252,7 @@ class QuantCoderEngine(
             candleData = emptyList(),
             plotSeries = emptyList(),
             shapeSeries = emptyList(),
+            labelSeries = emptyList(),
             runtimeMs = 0L,
             engine = "DrFXQuant Quant Coder",
             error = error
@@ -422,6 +434,41 @@ class QuantCoderEngine(
                 )
             }
         }
+    }
+
+    private fun parseLabels(
+        array: JSONArray?
+    ): List<QuantRuntimeLabel> {
+        if (array == null) return emptyList()
+
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item =
+                    array.optJSONObject(index) ?:
+                        continue
+
+                add(
+                    QuantRuntimeLabel(
+                        index = item.optInt(
+                            "index",
+                            -1
+                        ),
+                        text = item.optString(
+                            "text",
+                            ""
+                        ),
+                        color = item.optString(
+                            "color",
+                            "#F5B942"
+                        ),
+                        direction = item.optString(
+                            "direction",
+                            "up"
+                        )
+                    )
+                )
+            }
+        }.filter { it.index >= 0 }
     }
 
     private fun parseNullableDoubles(
