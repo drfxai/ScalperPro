@@ -3,10 +3,10 @@
   "versionName": "1.0.0",
   "versionCode": 1,
   "repository": "DrFXAi/ScalperPro",
-  "lastCompletedTask": "SP-P24-T03",
-  "currentTask": "SP-P25-T01",
-  "currentStatus": "IN_PROGRESS",
-  "exactNextAction": "Publish and verify GitHub Release v1.0.0 using the validated release workflow.",
+  "lastCompletedTask": "SP-P25-T01",
+  "currentTask": "SP-P26-T01",
+  "currentStatus": "NOT_STARTED",
+  "exactNextAction": "Continue the remaining Master Prompt product scope and end-to-end UX validation; do not treat foundation-only modules as complete.",
   "ci": {
     "runId": 37501908441,
     "unitTests": "PASS",
@@ -17,5 +17,12 @@
     "Production signing secret not configured",
     "Live data providers not configured",
     "AI gateway not yet deployed"
-  ]
+  ],
+  "release": {
+    "tag": "v1.0.0",
+    "status": "PUBLISHED",
+    "installableApk": "ScalperPro-V1.0.0-installable.apk",
+    "unsignedReleaseApk": "ScalperPro-V1.0.0-release-unsigned.apk",
+    "checksums": "SHA256SUMS"
+  }
 }
