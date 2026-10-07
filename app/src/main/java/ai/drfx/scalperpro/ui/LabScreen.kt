@@ -2,6 +2,8 @@ package ai.drfx.scalperpro.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -157,59 +159,89 @@ internal fun LabScreen(
     var pineEditor by remember { mutableStateOf(indicatorPine.source) }
     var runtimeReport by remember { mutableStateOf<QuantRuntimeReport?>(null) }
 
-    Column(Modifier.fillMaxSize()) {
-        PageHeader("Scalper Pro Quant Lab", onHome)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                PremiumScreenBrush
+            )
+    ) {
+        PageHeader(
+            title = "Strategy Lab",
+            subtitle =
+                "Idea → Strategy → Code → Backtest",
+            onHome = onHome
+        )
 
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        PremiumCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 14.dp
+                ),
+            accent =
+                PremiumColors.Purple
         ) {
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.AI_BUILDER },
-                    label = { Text("AI Builder") }
-                )
-            }
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.INDICATOR },
-                    label = { Text("Indicator") }
-                )
-            }
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.SPECIFICATION },
-                    label = { Text("Strategy") }
-                )
-            }
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.BACKTEST },
-                    label = { Text("Backtest") }
-                )
-            }
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.PINE },
-                    label = { Text("Pine") }
-                )
-            }
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.CHART },
-                    label = { Text("Chart Lab") }
-                )
-            }
-            item {
-                AssistChip(
-                    onClick = { mode = LabMode.MQL5 },
-                    label = { Text("MQL5") }
-                )
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 10.dp,
+                        vertical = 9.dp
+                    ),
+                horizontalArrangement =
+                    Arrangement.spacedBy(
+                        8.dp
+                    )
+            ) {
+                items(
+                    listOf(
+                        LabMode.SPECIFICATION to
+                            "Strategy",
+                        LabMode.PINE to
+                            "Pine",
+                        LabMode.MQL5 to
+                            "MQL5",
+                        LabMode.BACKTEST to
+                            "Backtest",
+                        LabMode.AI_BUILDER to
+                            "AI Builder",
+                        LabMode.INDICATOR to
+                            "Indicator",
+                        LabMode.CHART to
+                            "Chart"
+                    )
+                ) {
+                    item ->
+                    PremiumTag(
+                        text = item.second,
+                        accent =
+                            when (
+                                item.first
+                            ) {
+                                LabMode.PINE ->
+                                    PremiumColors.Teal
+                                LabMode.MQL5 ->
+                                    PremiumColors.Gold
+                                LabMode.BACKTEST ->
+                                    PremiumColors.Cyan
+                                else ->
+                                    PremiumColors.Purple
+                            },
+                        selected =
+                            mode == item.first,
+                        modifier =
+                            Modifier.clickable {
+                                mode = item.first
+                            }
+                    )
+                }
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(
+            Modifier.height(8.dp)
+        )
 
         when (mode) {
             LabMode.AI_BUILDER -> AiBuilderPanel(
