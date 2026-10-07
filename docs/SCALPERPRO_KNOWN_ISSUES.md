@@ -1,5 +1,14 @@
 # Known Issues / Release Blockers
 
+## Reconciled release state (2026-10-07)
+
+- Main `22fc038` is CI-green after PR #12; no pull requests were open at reconciliation time.
+- Public V1.0.0 still targets older commit `f31bf150`; it remains immutable rather than being retargeted.
+- V1.0.1 workflow is prepared but must not run until its change is merged with green CI and
+  `v1.0.1` is created from that green main commit.
+- AI Gateway rate limiting is configured but requires deployment validation in the target
+  Cloudflare account. Production user/session or edge authentication is still required.
+
 ## Core priority blockers
 
 - PR #7 is merged; Android CI is green; V1.0.0 validation/build/tag alignment/release upload are complete. Physical-device validation remains pending.

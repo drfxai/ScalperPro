@@ -1,0 +1,49 @@
+name: Release V1.0.1
+
+on:
+  push:
+    tags: [ "v1.0.1" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require immutable release tag on main
+        run: |
+          git fetch origin main --depth=1
+          test "${GITHUB_REF_NAME}" = "v1.0.1"
+          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+      - name: Validate
+        run: gradle --no-daemon :app:testDebugUnitTest :app:lintDebug
+      - name: Build installable and release APKs
+        run: gradle --no-daemon :app:assembleDebug :app:assembleRelease
+      - name: Prepare assets
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ScalperPro-V1.0.1-installable.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ScalperPro-V1.0.1-release-unsigned.apk
+          (cd dist && sha256sum *.apk > SHA256SUMS)
+      - name: Publish immutable GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0.1 >/dev/null 2>&1; then
+            echo "v1.0.1 already exists; refusing to mutate an immutable release." >&2
+            exit 1
+          fi
+          gh release create v1.0.1 dist/* \
+            --verify-tag \
+            --title "Scalper Pro V1.0.1" \
+            --notes "Scalper Pro V1.0.1. Includes the local-only historical CSV Backtest Lab and Scalper AI Gateway hardening. The installable APK uses CI debug signing; the release APK remains unsigned until a persistent production signing key is configured."

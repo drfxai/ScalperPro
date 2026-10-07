@@ -1,6 +1,6 @@
 # Scalper Pro Architecture
 
-## V1.0.0
+## V1.0.1
 
 Android: Kotlin + Jetpack Compose with a dedicated OpenGL ES 3.0 neural-galaxy renderer.
 
@@ -17,6 +17,9 @@ AI:
 Android -> trusted Scalper AI Gateway -> Gemini 3.8 Flash or 9Router Smart/Combo.
 
 No provider secret belongs in the APK.
+The Gateway validates route/task inputs, bounds provider responses, applies upstream
+timeouts and Cloudflare rate limiting, and propagates request IDs. Production access
+still requires user/session authentication or an edge access policy at deployment.
 
 Home:
 

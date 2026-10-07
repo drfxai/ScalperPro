@@ -8,6 +8,9 @@ This Cloudflare Worker is the trusted server-side AI gateway for Scalper Pro.
 - 9Router Smart — server-configured route/model identifier
 - 9Router Combo — server-configured combo identifier
 - optional Gemini -> 9Router fallback for retryable provider failures
+- bounded provider responses and a 45-second upstream timeout
+- validated route/task values and end-to-end `X-Request-ID` correlation
+- per-IP, per-route Cloudflare rate limiting (20 requests/minute/location)
 
 ## Security
 
@@ -25,3 +28,8 @@ wrangler secret put NINEROUTER_API_KEY
 the deployed 9Router instance.
 
 The Android V1.0.0 client intentionally ships without provider secrets.
+
+The rate-limit namespace ID is account-local and may be changed if `1001` is already
+used by another Worker. Authentication remains a deployment requirement: protect the
+production route with the product's user/session authentication or Cloudflare Access.
+Do not embed a shared gateway credential in the Android APK.

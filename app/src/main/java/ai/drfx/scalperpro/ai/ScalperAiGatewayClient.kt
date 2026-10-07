@@ -7,6 +7,7 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 
 data class AiLabStageResult(
     val role: String,
@@ -80,6 +81,7 @@ class ScalperAiGatewayClient(
         context: String = ""
     ): AiLabExecutionResult =
         withContext(Dispatchers.IO) {
+            val requestId = UUID.randomUUID().toString()
             if (!baseUrl.startsWith("https://")) {
                 return@withContext AiLabExecutionResult.Unavailable(
                     "Trusted Scalper AI Gateway is not configured in this build."
@@ -129,6 +131,10 @@ class ScalperAiGatewayClient(
                     setRequestProperty(
                         "accept",
                         "application/json"
+                    )
+                    setRequestProperty(
+                        "x-request-id",
+                        requestId
                     )
                 }
             } catch (throwable: Throwable) {
@@ -214,6 +220,7 @@ class ScalperAiGatewayClient(
         message: String
     ): AiChatExecutionResult =
         withContext(Dispatchers.IO) {
+            val requestId = UUID.randomUUID().toString()
             if (!baseUrl.startsWith("https://")) {
                 return@withContext AiChatExecutionResult.Unavailable(
                     "Trusted Scalper AI Gateway is not configured in this build."
@@ -255,6 +262,10 @@ class ScalperAiGatewayClient(
                     setRequestProperty(
                         "accept",
                         "application/json"
+                    )
+                    setRequestProperty(
+                        "x-request-id",
+                        requestId
                     )
                 }
             } catch (throwable: Throwable) {
