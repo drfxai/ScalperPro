@@ -84,7 +84,7 @@
 
 | Gateway auth wave | Nine Node tests: signed/forged/expired/wrong-issuer/audience identities, required limiter, quota/outage, sanitized response, validation, oversized bodies, empty Lab stage, provider parsing, full read timeout | LOCAL_PASSED (mocked external services) |
 | Gateway auth wave | Node syntax/diff checks | LOCAL_PASSED |
-| Gateway auth wave | Gateway and Android PR CI | PENDING |
+| Gateway auth wave | Gateway 37597066808 and Android 37597066813 at 291e7f7 | PASSED (final checkpoint revision checked on PR #15) |
 | Gateway deployment | Real Access policy/JWKS/session + cloud quota script | BLOCKED_CONFIGURATION |
 | Gateway deployment | Gemini/9Router real execution | NOT_RUN |
 | Android auth | Native Access login/refresh | NOT_IMPLEMENTED |

@@ -12,7 +12,7 @@ async function probe(path, auth, method='GET', body) {
  const data = response.headers.get('content-type')?.includes('application/json') ? await response.json() : {};
  return { status:response.status, code:data.code, requestId:data.requestId, retryAfter:response.headers.get('retry-after'), validation:data.validation };
 }
-const anonymous=await probe('/v1/ai/chat',false,'POST',{message:'Deployment validation must not call a provider'});
+const anonymous=await probe('/v1/ai/chat',false,'POST',{message:''});
 if (![401,403,302].includes(anonymous.status)) throw new Error('Anonymous route is not protected');
 results.push({check:'anonymous access rejected',...anonymous});
 for (const mode of (process.env.GATEWAY_MODES || 'gemini').split(',')) {

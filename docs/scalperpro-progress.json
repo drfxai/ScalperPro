@@ -17,9 +17,9 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-T95",
-  "currentTask": "SP-PRIO-T96",
-  "currentStatus": "IMPLEMENTED",
+  "lastCompletedTask": "SP-PRIO-T98",
+  "currentTask": "SP-PRIO-T99",
+  "currentStatus": "BLOCKED",
   "workingBranch": "codex/trusted-gateway-auth",
   "pullRequest": 15,
   "implementedInCurrentWave": [
@@ -44,6 +44,14 @@
     "Native Android Access session acquisition and refresh is not implemented",
     "Global provider spending budgets are not implemented; binding is per-location burst protection"
   ],
-  "exactNextAction": "Verify Gateway and Android PR CI, merge only green; configure staging Access/domain/provider settings and record cloud validation. Keep Android Gateway URL unset until native session integration.",
-  "verifiedBaseCommit": "4e0d7a2f58a4b5408f5da5e1df70f79d7ae6e802"
+  "exactNextAction": "Configure staging custom domain, Access user policy/issuer/audience and explicit provider models/secrets; run no-provider cloud validation and record evidence. Native Android session integration, Lab request budget and global spending budgets are required before mobile rollout.",
+  "verifiedBaseCommit": "4e0d7a2f58a4b5408f5da5e1df70f79d7ae6e802",
+  "verification": {
+    "implementationCommit": "291e7f77babd557c4be33b0f93f2d906f65f8367",
+    "gatewayCi": 37597066808,
+    "androidCi": 37597066813,
+    "result": "PASSED",
+    "externalProviderExecution": "NOT_RUN",
+    "cloudDeploymentValidation": "BLOCKED_CONFIGURATION"
+  }
 }
