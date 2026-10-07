@@ -263,7 +263,9 @@ Cloud deployment is blocked by absent target account/domain/Access policy/provid
 configuration; no external provider execution is claimed. Native Android Access session
 acquisition/refresh is not implemented and the default Gateway URL must remain unset.
 
-Exact next action: open the Gateway PR, verify Gateway and Android CI, merge only after
+Gateway PR: #15, branch `codex/trusted-gateway-auth`.
+
+Exact next action: verify Gateway and Android CI, merge only after
 both pass; then configure staging Access/domain/provider models/secrets and record the
 cloud validation script evidence. Global spending budgets and Android session integration
 remain required before production app enablement. Physical-device validation remains pending.

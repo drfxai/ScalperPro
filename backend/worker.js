@@ -396,7 +396,7 @@ const handler = {
     } catch (e) {
       return json({
         error: "AI_PROVIDER_ERROR",
-        code: /^PROVIDER_|^(GEMINI|NINEROUTER)_HTTP_\d{3}$/.test(e?.message || "") ? e.message : "PROVIDER_UNAVAILABLE",
+        code: ["PROVIDER_TIMEOUT", "PROVIDER_RESPONSE_TOO_LARGE", "PROVIDER_INVALID_JSON", "PROVIDER_EMPTY_RESPONSE"].includes(e?.message) || /^(GEMINI|NINEROUTER)_HTTP_\d{3}$/.test(e?.message || "") ? e.message : "PROVIDER_UNAVAILABLE",
         requestId
       }, 502, requestId);
     }

@@ -21,7 +21,7 @@
   "currentTask": "SP-PRIO-T96",
   "currentStatus": "IMPLEMENTED",
   "workingBranch": "codex/trusted-gateway-auth",
-  "pullRequest": null,
+  "pullRequest": 15,
   "implementedInCurrentWave": [
     "Signed human Cloudflare Access JWT verification",
     "Required per-user/per-route rate limiter",
