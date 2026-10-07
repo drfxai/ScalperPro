@@ -2,6 +2,8 @@ name = "scalperpro-ai-gateway"
 main = "worker.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = [ "nodejs_compat" ]
+workers_dev = false
+preview_urls = false
 
 [[ratelimits]]
 name = "AI_RATE_LIMITER"
@@ -16,7 +18,10 @@ enabled = true
 head_sampling_rate = 1
 
 [vars]
-GEMINI_MODEL = "gemini-3.8-flash"
+# Set an explicitly verified provider model before enabling requests.
+GEMINI_MODEL = ""
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
 ENABLE_NINEROUTER_FALLBACK = "false"
 
 # Configure non-secret routing values after deploying:
