@@ -1,3 +1,4 @@
+import { authenticate, validateDeployment, validateProvider } from "./security.js";
 const json = (data, status = 200, requestId) => new Response(JSON.stringify(data), {
   status,
   headers: {
@@ -21,9 +22,9 @@ const VALID_TASK_TYPES = new Set([
   "explain"
 ]);
 
-async function readJsonLimited(response) {
+async function readJsonLimited(response, maximum = MAX_PROVIDER_RESPONSE) {
   const declaredLength = Number(response.headers.get("content-length") || 0);
-  if (declaredLength > MAX_PROVIDER_RESPONSE) {
+  if (declaredLength > maximum) {
     throw new Error("PROVIDER_RESPONSE_TOO_LARGE");
   }
 
@@ -37,7 +38,7 @@ async function readJsonLimited(response) {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > MAX_PROVIDER_RESPONSE) {
+    if (size > maximum) {
       await reader.cancel();
       throw new Error("PROVIDER_RESPONSE_TOO_LARGE");
     }
@@ -52,13 +53,15 @@ async function readJsonLimited(response) {
   }
 }
 
-async function fetchProvider(url, init) {
+export async function fetchProvider(url, init) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    const response = await fetch(url, { ...init, redirect: "error", signal: controller.signal });
+    const data = await readJsonLimited(response);
+    return { ok: response.ok, status: response.status, data };
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error("PROVIDER_TIMEOUT");
+    if (controller.signal.aborted) throw new Error("PROVIDER_TIMEOUT");
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -67,16 +70,16 @@ async function fetchProvider(url, init) {
 
 async function gemini(env, body) {
   if (!env.GEMINI_API_KEY) throw new Error("GEMINI_NOT_CONFIGURED");
-  const model = env.GEMINI_MODEL || "gemini-3.8-flash";
+  const model = env.GEMINI_MODEL;
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(env.GEMINI_API_KEY);
+    encodeURIComponent(model) + ":generateContent";
   const contents = [{ role: "user", parts: [{ text: String(body.message || "") }] }];
   const res = await fetchProvider(url, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
     body: JSON.stringify({ contents })
   });
-  const data = await readJsonLimited(res);
+  const data = res.data;
   if (!res.ok) {
     const e = new Error("GEMINI_HTTP_" + res.status);
     e.status = res.status;
@@ -84,7 +87,8 @@ async function gemini(env, body) {
     throw e;
   }
   const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
-  return { provider: "gemini", model, text, raw: data };
+  if (!text.trim()) throw new Error("PROVIDER_EMPTY_RESPONSE");
+  return { provider: "gemini", model, text };
 }
 
 async function nineRouter(env, body, combo) {
@@ -104,18 +108,18 @@ async function nineRouter(env, body, combo) {
       messages: [{ role: "user", content: String(body.message || "") }]
     })
   });
-  const data = await readJsonLimited(res);
+  const data = res.data;
   if (!res.ok) {
     const e = new Error("NINEROUTER_HTTP_" + res.status);
     e.status = res.status;
     e.details = data;
     throw e;
   }
+  if (typeof data?.choices?.[0]?.message?.content !== "string" || !data.choices[0].message.content.trim()) throw new Error("PROVIDER_EMPTY_RESPONSE");
   return {
     provider: "9router",
     model,
-    text: data?.choices?.[0]?.message?.content || "",
-    raw: data
+    text: data?.choices?.[0]?.message?.content || ""
   };
 }
 
@@ -301,11 +305,11 @@ async function runLabWorkflow(env, body) {
   };
 }
 
-export default {
+const handler = {
   async fetch(request, env) {
     const url = new URL(request.url);
     const incomingRequestId = request.headers.get("x-request-id")?.trim();
-    const requestId = incomingRequestId && incomingRequestId.length <= 128
+    const requestId = incomingRequestId && /^[a-zA-Z0-9_-]{1,128}$/.test(incomingRequestId)
       ? incomingRequestId
       : crypto.randomUUID();
 
@@ -313,43 +317,48 @@ export default {
       return json({
         ok: true,
         product: "Scalper Pro",
-        version: "1.0.0",
-        geminiModel: env.GEMINI_MODEL || "gemini-3.8-flash",
-        labWorkflow: true,
         requestId
       }, 200, requestId);
     }
 
-    if (request.method !== "POST") {
+    if (request.method !== "POST" && !(request.method === "GET" && url.pathname === "/ready")) {
       return json({ error: "NOT_FOUND", requestId }, 404, requestId);
     }
 
     if (
       url.pathname !== "/v1/ai/chat" &&
-      url.pathname !== "/v1/ai/lab"
+      url.pathname !== "/v1/ai/lab" && url.pathname !== "/ready"
     ) {
       return json({ error: "NOT_FOUND", requestId }, 404, requestId);
     }
 
-    if (env.AI_RATE_LIMITER) {
-      const actor = request.headers.get("cf-connecting-ip") || "unknown";
-      const { success } = await env.AI_RATE_LIMITER.limit({
-        key: actor + ":" + url.pathname
-      });
-      if (!success) {
-        return json({
-          error: "RATE_LIMITED",
-          code: "RATE_LIMITED",
-          requestId
-        }, 429, requestId);
+    let actor;
+    try {
+      validateDeployment(env);
+      actor = await authenticate(request, env);
+      const { success } = await env.AI_RATE_LIMITER.limit({ key: actor + ":" + url.pathname });
+      if (!success) return json({ error: "RATE_LIMITED", code: "RATE_LIMITED", requestId }, 429, requestId);
+    } catch (error) {
+      const code = error.message === "UNAUTHORIZED" ? "UNAUTHORIZED" :
+        ["AUTH_NOT_CONFIGURED", "AUTH_UNAVAILABLE", "RATE_LIMIT_NOT_CONFIGURED"].includes(error.message) ? error.message : "RATE_LIMIT_UNAVAILABLE";
+      return json({ error: code, code, requestId }, code === "UNAUTHORIZED" ? 401 : 503, requestId);
+    }
+
+    if (url.pathname === "/ready") {
+      const mode = url.searchParams.get("mode") || "gemini";
+      if (!VALID_MODES.has(mode)) return json({ error: "INVALID_MODE", requestId }, 400, requestId);
+      try { validateProvider(env, mode); } catch {
+        return json({ error: "PROVIDER_NOT_CONFIGURED", code: "PROVIDER_NOT_CONFIGURED", requestId }, 503, requestId);
       }
+      return json({ ok: true, mode, validation: "CONFIGURATION_ONLY", requestId }, 200, requestId);
     }
 
     let body;
     try {
-      body = await request.json();
-    } catch {
-      return json({ error: "INVALID_JSON", requestId }, 400, requestId);
+      body = await readJsonLimited(request, 128000);
+    } catch (error) {
+      const code = error.message === "PROVIDER_RESPONSE_TOO_LARGE" ? "REQUEST_TOO_LARGE" : "INVALID_JSON";
+      return json({ error: code, code, requestId }, code === "REQUEST_TOO_LARGE" ? 413 : 400, requestId);
     }
 
     const message = typeof body?.message === "string" ? body.message.trim() : "";
@@ -369,6 +378,9 @@ export default {
       return json({ error: "INVALID_TASK_TYPE", requestId }, 400, requestId);
     }
 
+    try { validateProvider(env, mode); } catch {
+      return json({ error: "PROVIDER_NOT_CONFIGURED", code: "PROVIDER_NOT_CONFIGURED", requestId }, 503, requestId);
+    }
     body = { ...body, message, mode };
 
     try {
@@ -384,9 +396,30 @@ export default {
     } catch (e) {
       return json({
         error: "AI_PROVIDER_ERROR",
-        code: e?.message || "UNKNOWN",
+        code: ["PROVIDER_TIMEOUT", "PROVIDER_RESPONSE_TOO_LARGE", "PROVIDER_INVALID_JSON", "PROVIDER_EMPTY_RESPONSE"].includes(e?.message) || /^(GEMINI|NINEROUTER)_HTTP_\d{3}$/.test(e?.message || "") ? e.message : "PROVIDER_UNAVAILABLE",
         requestId
       }, 502, requestId);
     }
+  }
+};
+
+export default {
+  async fetch(request, env) {
+    const started = Date.now();
+    let response = await handler.fetch(request, env);
+    if (response.status === 429) response.headers.set("retry-after", "60");
+    if (response.status === 401) response.headers.set("www-authenticate", 'Bearer realm="Scalper Pro Access"');
+    let code;
+    if (response.status >= 400) {
+      const failure = await response.clone().json();
+      code = failure.code || failure.error;
+      if (!failure.code) {
+        response = json({ ...failure, code }, response.status, response.headers.get("x-request-id"));
+      }
+    }
+    console.log(JSON.stringify({ event: "gateway_request", requestId: response.headers.get("x-request-id"),
+      route: ["/health", "/ready", "/v1/ai/chat", "/v1/ai/lab"].includes(new URL(request.url).pathname) ? new URL(request.url).pathname : "unknown",
+      status: response.status, code, durationMs: Date.now() - started }));
+    return response;
   }
 };

@@ -245,3 +245,41 @@ Deploy and validate the trusted Gateway with real user/session or edge authentic
 then perform physical-device Neural Galaxy FPS/gesture/lifecycle validation. Do not claim
 live Gemini/9Router, TradingView compile, or MetaEditor compile verification until those
 external systems return real results.
+
+## Trusted Gateway authentication wave — 2026-10-07
+
+Authoritative checkpoint superseding historical next-action sections above:
+main `4e0d7a2f58a4b5408f5da5e1df70f79d7ae6e802`, PR #14 merged, no open PRs
+at verification; main Android CI 37594349247 passed. V1.0.1 release CI 37593390276
+passed at `bce436a`; V1.0.0/V1.0.1 tags/assets remain untouched.
+
+- SP-PRIO-T96 Signed human Cloudflare Access JWT authentication — IMPLEMENTED / LOCAL_TEST_PASSED.
+- SP-PRIO-T97 Required identity-based limiter and deployment configuration preflight — IMPLEMENTED / LOCAL_TEST_PASSED.
+- SP-PRIO-T98 Sanitized structured failures/logs and provider body deadline — IMPLEMENTED / LOCAL_TEST_PASSED.
+- SP-PRIO-T99 Gateway CI and no-provider cloud validation script/runbook — IMPLEMENTED / CLOUD_VALIDATION_PENDING.
+
+Nine Node tests passed with locally signed test JWTs and mocked provider/key endpoints.
+Cloud deployment is blocked by absent target account/domain/Access policy/provider
+configuration; no external provider execution is claimed. Native Android Access session
+acquisition/refresh is not implemented and the default Gateway URL must remain unset.
+
+Gateway PR: #15, branch `codex/trusted-gateway-auth`.
+
+Exact next action: verify Gateway and Android CI, merge only after
+both pass; then configure staging Access/domain/provider models/secrets and record the
+cloud validation script evidence. Global spending budgets and Android session integration
+remain required before production app enablement. Physical-device validation remains pending.
+
+### Gateway implementation completion checkpoint — PR #15
+
+Implementation commit `291e7f77babd557c4be33b0f93f2d906f65f8367` passed Gateway CI
+37597066808 and Android CI 37597066813 (unit tests, lint, installable APK).
+SP-PRIO-T96/T97/T98 implementation is complete; SP-PRIO-T99 cloud validation remains
+BLOCKED_CONFIGURATION. This checkpoint also tightens the cloud validator to use empty
+messages for anonymous probes, guaranteeing that an accidentally unprotected route still
+cannot reach the provider through a validation probe. Final PR revision must be green
+before merge; GitHub PR #15 retains exact check/merge evidence.
+
+Next work is staging account/domain/Access policy/provider configuration and recorded
+cloud validation, followed by native Android session flow, Lab timing contract and global
+provider spending budgets. No release/tag changes; no real provider/compiler/device result.

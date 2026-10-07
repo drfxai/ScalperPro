@@ -17,36 +17,18 @@
     "pinnedCommit": "caba017c1c1717a3ea5d0a4a7f00bee258cf2da4",
     "securityBoundary": "Reuse owned code/patterns only. No wallets, payments, autotrade, credentials, certificates or private keys."
   },
-  "lastCompletedTask": "SP-PRIO-T95",
-  "currentTask": "SP-PRIO-T96",
-  "currentStatus": "DEPLOYMENT_AND_DEVICE_VALIDATION_PENDING",
-  "workingBranch": "codex/v1.0.1-release-checkpoint",
-  "pullRequest": null,
+  "lastCompletedTask": "SP-PRIO-T98",
+  "currentTask": "SP-PRIO-T99",
+  "currentStatus": "BLOCKED",
+  "workingBranch": "codex/trusted-gateway-auth",
+  "pullRequest": 15,
   "implementedInCurrentWave": [
-    "Android trusted HTTPS client for Scalper AI chat and staged specialist workflows",
-    "AI Builder specialist execution UI and Pine handoff",
-    "Scalper AI conversational UI",
-    "Home AI draft handoff and Galaxy core shortcuts",
-    "Explicit Strategy Specification short rules and execution assumptions",
-    "Pine strategy sessions, confirmed bars, cooldown, costs, stops, targets and exits",
-    "DrFXQuant plot, plotshape and label output mapping to TradingView chart",
-    "Conservative Pine-condition to MQL5 translator",
-    "MQL5 CTrade scaffold with risk sizing, spread/new-bar/position guards and CopyBuffer helpers",
-    "Damped XYZ Neural Galaxy inertia with pause/play/reset orbit controls",
-    "TradingView-aligned confirmed-HTF lookahead review and conservative next-tick fill default",
-    "Interactive strategy archetype/tool/timeframe reference selectors",
-    "Strategy Specification expression interpreter for EMA/SMA/RSI/ATR/OHLC",
-    "Boolean composition plus crossover/crossunder",
-    "Fail-closed Strategy Specification compatibility checker",
-    "Deterministic Strategy Specification backtest adapter",
-    "Beginner-facing Backtest Lab metrics and recent trade list",
-    "Local-only OHLC CSV parser",
-    "Bounded Android Storage Access Framework CSV loader",
-    "CSV OHLC/timestamp/volume validation with duplicate rejection",
-    "Local Backtest Lab dataset switch with no upload path",
-    "Scalper AI Gateway request IDs, strict input validation and provider response bounds",
-    "Cloudflare AI rate limiting and observability",
-    "Immutable V1.0.1 release workflow"
+    "Signed human Cloudflare Access JWT verification",
+    "Required per-user/per-route rate limiter",
+    "Authenticated configuration-only readiness",
+    "Bounded requests, complete provider-read deadline, empty Lab stage rejection",
+    "Sanitized response fields, structured failures and completion logs",
+    "Gateway Node CI and no-provider deployment validation script"
   ],
   "knownBlockers": [
     "Trusted Gateway deployment requires real user/session or edge authentication and provider configuration",
@@ -57,7 +39,19 @@
     "Trusted AI Gateway URL/provider deployment is not configured in the default build",
     "TradingView external Pine compilation is unavailable",
     "MetaEditor compile worker is not configured",
-    "Production Android signing key is not configured"
+    "Production Android signing key is not configured",
+    "Cloudflare target account/domain/Access policy and short-lived test session are unavailable",
+    "Native Android Access session acquisition and refresh is not implemented",
+    "Global provider spending budgets are not implemented; binding is per-location burst protection"
   ],
-  "exactNextAction": "Deploy and validate the trusted authenticated Gateway, then run physical-device Neural Galaxy FPS, gesture and lifecycle validation."
+  "exactNextAction": "Configure staging custom domain, Access user policy/issuer/audience and explicit provider models/secrets; run no-provider cloud validation and record evidence. Native Android session integration, Lab request budget and global spending budgets are required before mobile rollout.",
+  "verifiedBaseCommit": "4e0d7a2f58a4b5408f5da5e1df70f79d7ae6e802",
+  "verification": {
+    "implementationCommit": "291e7f77babd557c4be33b0f93f2d906f65f8367",
+    "gatewayCi": 37597066808,
+    "androidCi": 37597066813,
+    "result": "PASSED",
+    "externalProviderExecution": "NOT_RUN",
+    "cloudDeploymentValidation": "BLOCKED_CONFIGURATION"
+  }
 }

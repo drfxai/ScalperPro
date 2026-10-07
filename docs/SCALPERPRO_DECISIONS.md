@@ -18,3 +18,8 @@
 16. Release tags and assets are immutable. V1.0.1 is created only from its fixed tag after validation; existing releases are never retargeted or overwritten.
 17. A shared Gateway secret is never embedded in the APK. Production authentication must use user/session identity or an edge access policy.
 
+
+18. Use signed human Cloudflare Access identity for the first protected Gateway pilot; verify signature and claims in the Worker. No shared APK credential or service token workaround.
+19. Require explicit Gemini model configuration; the prior Gemini 3.8 identifier is unverified and no longer defaults at runtime. Readiness is configuration only.
+20. Required identity burst limiter fails closed. Per-location binding is not a global spending cap.
+21. Published V1.0.0 and V1.0.1 remain unchanged; no release is requested for this backend wave.

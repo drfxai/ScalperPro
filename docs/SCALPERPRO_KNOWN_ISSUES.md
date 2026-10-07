@@ -58,3 +58,9 @@ TradingView Lightweight Charts Android remains configured with
   on-device Backtest Lab path. It is not a live market-data feed.
 - The importer intentionally supports simple OHLC CSV layouts rather than a general spreadsheet
   engine. Complex quoted/multi-line CSV dialects are outside the V1 parser contract.
+
+## Current Gateway checkpoint (supersedes historical deployment notes)
+
+Signed Access identity verification and required subject/route burst limiting are implemented and locally tested. Cloud Access policy, actual deployment and real rate-limit validation remain pending. Target domain/account/provider settings are not supplied. Existing Android client lacks human Access session login/refresh, so default Gateway URL stays unset. Global cost budgets remain unimplemented; a Lab request may make five upstream calls. Native session integration is required before app rollout.
+
+Lab workflows are synchronous and can exceed the current Android read timeout across multiple 45-second stages/fallback calls. Before native rollout, introduce an overall request budget or asynchronous job/poll contract; this cloud-auth wave does not claim that timing integration is complete.

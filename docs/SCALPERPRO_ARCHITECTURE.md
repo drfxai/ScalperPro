@@ -25,3 +25,7 @@ Home:
 
 Compose overlays + native GLSurfaceView/OpenGL ES renderer. The graph auto-orbits
 clockwise around Y and supports X/Y drag, pinch zoom and two-finger Z twist.
+
+## Trusted Gateway pilot
+
+Custom domain + Cloudflare Access -> Worker verifies RS256 human JWT -> required subject/route limiter -> bounded provider adapter. `/health` is liveness; authenticated `/ready` is configuration only. Native Android session integration and global budgets remain pending. See backend/README.md for deployment gates.
