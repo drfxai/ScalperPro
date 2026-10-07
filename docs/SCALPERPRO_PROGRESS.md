@@ -221,7 +221,7 @@ and refresh V1.0.0 only after the complete local-import wave is present on main.
 - SP-PRIO-T92 Gateway request correlation and strict route/task validation — IMPLEMENTED.
 - SP-PRIO-T93 Gateway provider timeout, bounded response parsing and empty-response rejection — IMPLEMENTED.
 - SP-PRIO-T94 Cloudflare per-IP/per-route AI rate limiting and observability — IMPLEMENTED.
-- SP-PRIO-T95 Immutable V1.0.1 tag-triggered release workflow — IMPLEMENTED / CI_PENDING.
+- SP-PRIO-T95 Immutable V1.0.1 tag-triggered release workflow — COMPLETED.
 - Local Android unit tests, lint and debug APK build — PASSED.
 - Worker JavaScript syntax and repository diff checks — PASSED.
 
@@ -230,3 +230,18 @@ Push the Gateway/release-hardening branch, open a PR, wait for Android CI, and m
 when green. Create the immutable `v1.0.1` tag from the resulting green main commit; do not
 retarget or overwrite `v1.0.0`. Gateway deployment/authentication and physical-device
 Neural Galaxy validation remain separate required tasks.
+
+## V1.0.1 completion checkpoint
+
+- PR #13 — MERGED after green Android CI.
+- Green main/release commit — `bce436a154e998c91299e1db7caaf93fe1fce537`.
+- Main Android CI — PASSED.
+- Immutable annotated tag `v1.0.1` — CREATED at the green merge commit.
+- Release V1.0.1 validation, unit tests, lint, debug APK and unsigned release APK — PASSED.
+- GitHub Release V1.0.1 with `SHA256SUMS` — PUBLISHED.
+
+Exact next action:
+Deploy and validate the trusted Gateway with real user/session or edge authentication,
+then perform physical-device Neural Galaxy FPS/gesture/lifecycle validation. Do not claim
+live Gemini/9Router, TradingView compile, or MetaEditor compile verification until those
+external systems return real results.
