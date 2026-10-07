@@ -70,3 +70,11 @@
 | Historical CSV | local SAF loader size bound | IMPLEMENTED / CI |
 | Historical CSV | file stays local to Backtest Lab | IMPLEMENTED / ARCHITECTURE |
 | Historical CSV | PR #11 unit tests/lint/APK | CI_RUNNING |
+| Historical CSV | PR #12 compile hotfix CI | PASSED |
+| Baseline | Main Android CI at 22fc038 | PASSED |
+| AI Gateway | mode/task/message validation | IMPLEMENTED / SYNTAX_CHECKED |
+| AI Gateway | request ID propagation | IMPLEMENTED / SYNTAX_CHECKED |
+| AI Gateway | provider timeout/response bound/empty response | IMPLEMENTED / SYNTAX_CHECKED |
+| AI Gateway | Cloudflare per-IP/per-route rate limit | IMPLEMENTED / DEPLOYMENT_TEST_PENDING |
+| Release V1.0.1 | local unit tests/lint/debug APK | PASSED |
+| Release V1.0.1 | immutable tag workflow | IMPLEMENTED / CI_PENDING |

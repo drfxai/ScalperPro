@@ -1,10 +1,69 @@
-const json = (data, status = 200) => new Response(JSON.stringify(data), {
+const json = (data, status = 200, requestId) => new Response(JSON.stringify(data), {
   status,
-  headers: { "content-type": "application/json; charset=utf-8" }
+  headers: {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    ...(requestId ? { "x-request-id": requestId } : {})
+  }
 });
 
 const MAX_MESSAGE = 30000;
 const MAX_STAGE_CONTEXT = 18000;
+const MAX_PROVIDER_RESPONSE = 2000000;
+const PROVIDER_TIMEOUT_MS = 45000;
+const VALID_MODES = new Set(["gemini", "9router-smart", "9router-combo"]);
+const VALID_TASK_TYPES = new Set([
+  "indicator_build",
+  "strategy_build",
+  "pine_review",
+  "pine_repair",
+  "mql5_translate",
+  "explain"
+]);
+
+async function readJsonLimited(response) {
+  const declaredLength = Number(response.headers.get("content-length") || 0);
+  if (declaredLength > MAX_PROVIDER_RESPONSE) {
+    throw new Error("PROVIDER_RESPONSE_TOO_LARGE");
+  }
+
+  if (!response.body) return {};
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_PROVIDER_RESPONSE) {
+      await reader.cancel();
+      throw new Error("PROVIDER_RESPONSE_TOO_LARGE");
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  text += decoder.decode();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error("PROVIDER_INVALID_JSON");
+  }
+}
+
+async function fetchProvider(url, init) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error?.name === "AbortError") throw new Error("PROVIDER_TIMEOUT");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 async function gemini(env, body) {
   if (!env.GEMINI_API_KEY) throw new Error("GEMINI_NOT_CONFIGURED");
@@ -12,12 +71,12 @@ async function gemini(env, body) {
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
     encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(env.GEMINI_API_KEY);
   const contents = [{ role: "user", parts: [{ text: String(body.message || "") }] }];
-  const res = await fetch(url, {
+  const res = await fetchProvider(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ contents })
   });
-  const data = await res.json();
+  const data = await readJsonLimited(res);
   if (!res.ok) {
     const e = new Error("GEMINI_HTTP_" + res.status);
     e.status = res.status;
@@ -34,7 +93,7 @@ async function nineRouter(env, body, combo) {
   const model = combo ? env.NINEROUTER_COMBO_MODEL : env.NINEROUTER_SMART_MODEL;
   if (!base || !token || !model) throw new Error("NINEROUTER_NOT_CONFIGURED");
 
-  const res = await fetch(base.replace(/\/$/, "") + "/chat/completions", {
+  const res = await fetchProvider(base.replace(/\/$/, "") + "/chat/completions", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -45,7 +104,7 @@ async function nineRouter(env, body, combo) {
       messages: [{ role: "user", content: String(body.message || "") }]
     })
   });
-  const data = await res.json();
+  const data = await readJsonLimited(res);
   if (!res.ok) {
     const e = new Error("NINEROUTER_HTTP_" + res.status);
     e.status = res.status;
@@ -245,6 +304,10 @@ async function runLabWorkflow(env, body) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const incomingRequestId = request.headers.get("x-request-id")?.trim();
+    const requestId = incomingRequestId && incomingRequestId.length <= 128
+      ? incomingRequestId
+      : crypto.randomUUID();
 
     if (url.pathname === "/health") {
       return json({
@@ -252,44 +315,78 @@ export default {
         product: "Scalper Pro",
         version: "1.0.0",
         geminiModel: env.GEMINI_MODEL || "gemini-3.8-flash",
-        labWorkflow: true
-      });
+        labWorkflow: true,
+        requestId
+      }, 200, requestId);
     }
 
     if (request.method !== "POST") {
-      return json({ error: "NOT_FOUND" }, 404);
+      return json({ error: "NOT_FOUND", requestId }, 404, requestId);
     }
 
     if (
       url.pathname !== "/v1/ai/chat" &&
       url.pathname !== "/v1/ai/lab"
     ) {
-      return json({ error: "NOT_FOUND" }, 404);
+      return json({ error: "NOT_FOUND", requestId }, 404, requestId);
+    }
+
+    if (env.AI_RATE_LIMITER) {
+      const actor = request.headers.get("cf-connecting-ip") || "unknown";
+      const { success } = await env.AI_RATE_LIMITER.limit({
+        key: actor + ":" + url.pathname
+      });
+      if (!success) {
+        return json({
+          error: "RATE_LIMITED",
+          code: "RATE_LIMITED",
+          requestId
+        }, 429, requestId);
+      }
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return json({ error: "INVALID_JSON" }, 400);
+      return json({ error: "INVALID_JSON", requestId }, 400, requestId);
     }
 
-    if (!body?.message || String(body.message).length > MAX_MESSAGE) {
-      return json({ error: "INVALID_MESSAGE" }, 400);
+    const message = typeof body?.message === "string" ? body.message.trim() : "";
+    if (!message || message.length > MAX_MESSAGE) {
+      return json({ error: "INVALID_MESSAGE", requestId }, 400, requestId);
     }
+
+    const mode = String(body.mode || "gemini").toLowerCase();
+    if (!VALID_MODES.has(mode)) {
+      return json({ error: "INVALID_MODE", requestId }, 400, requestId);
+    }
+
+    if (
+      url.pathname === "/v1/ai/lab" &&
+      !VALID_TASK_TYPES.has(String(body.taskType || "indicator_build").toLowerCase())
+    ) {
+      return json({ error: "INVALID_TASK_TYPE", requestId }, 400, requestId);
+    }
+
+    body = { ...body, message, mode };
 
     try {
       if (url.pathname === "/v1/ai/lab") {
-        return json(await runLabWorkflow(env, body));
+        return json({ ...(await runLabWorkflow(env, body)), requestId }, 200, requestId);
       }
 
-      return json(await routedAi(env, body));
+      const result = await routedAi(env, body);
+      if (!result.text?.trim()) {
+        throw new Error("PROVIDER_EMPTY_RESPONSE");
+      }
+      return json({ ...result, requestId }, 200, requestId);
     } catch (e) {
       return json({
         error: "AI_PROVIDER_ERROR",
         code: e?.message || "UNKNOWN",
-        requestId: crypto.randomUUID()
-      }, 502);
+        requestId
+      }, 502, requestId);
     }
   }
 };

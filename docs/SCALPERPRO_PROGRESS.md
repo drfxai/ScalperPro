@@ -1,4 +1,4 @@
-# Scalper Pro V1.0.0 Progress
+# Scalper Pro V1.0.1 Progress
 
 ## Product priority
 
@@ -209,3 +209,24 @@ Current PR:
 Exact next action:
 Run/fix PR #11 unit tests, lint and APK build. Merge only when green. Then verify main CI
 and refresh V1.0.0 only after the complete local-import wave is present on main.
+
+## 2026-10-07 state reconciliation and AI Gateway hardening
+
+- PR #11 merged, then PR #12 fixed its typed-expression compile regression.
+- Current verified main is `22fc038202980e100065bd1995c0bc56128f84a7`.
+- Android CI on that main commit passed; there are no open pull requests.
+- Public `v1.0.0` still targets older commit `f31bf150d42960c85a6c16cf6680c73532e5e2e7`.
+- V1.0.0 is no longer mutated. The next release is V1.0.1 / versionCode 2.
+- SP-PRIO-T91 PR #11/#12 recovery and main CI — COMPLETED.
+- SP-PRIO-T92 Gateway request correlation and strict route/task validation — IMPLEMENTED.
+- SP-PRIO-T93 Gateway provider timeout, bounded response parsing and empty-response rejection — IMPLEMENTED.
+- SP-PRIO-T94 Cloudflare per-IP/per-route AI rate limiting and observability — IMPLEMENTED.
+- SP-PRIO-T95 Immutable V1.0.1 tag-triggered release workflow — IMPLEMENTED / CI_PENDING.
+- Local Android unit tests, lint and debug APK build — PASSED.
+- Worker JavaScript syntax and repository diff checks — PASSED.
+
+Exact next action:
+Push the Gateway/release-hardening branch, open a PR, wait for Android CI, and merge only
+when green. Create the immutable `v1.0.1` tag from the resulting green main commit; do not
+retarget or overwrite `v1.0.0`. Gateway deployment/authentication and physical-device
+Neural Galaxy validation remain separate required tasks.
