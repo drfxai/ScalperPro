@@ -8,6 +8,8 @@
   `v1.0.1` is created from that green main commit.
 - AI Gateway rate limiting is configured but requires deployment validation in the target
   Cloudflare account. Production user/session or edge authentication is still required.
+- V1.0.1 is published from green commit `bce436a`; its unsigned release APK is not a
+  substitute for production signing. The installable artifact uses CI debug signing.
 
 ## Core priority blockers
 

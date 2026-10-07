@@ -77,4 +77,7 @@
 | AI Gateway | provider timeout/response bound/empty response | IMPLEMENTED / SYNTAX_CHECKED |
 | AI Gateway | Cloudflare per-IP/per-route rate limit | IMPLEMENTED / DEPLOYMENT_TEST_PENDING |
 | Release V1.0.1 | local unit tests/lint/debug APK | PASSED |
-| Release V1.0.1 | immutable tag workflow | IMPLEMENTED / CI_PENDING |
+| Release V1.0.1 | immutable tag workflow | PASSED |
+| PR #13 | Android unit tests/lint/debug APK | PASSED |
+| Main bce436a | Android CI | PASSED |
+| Release V1.0.1 | validation/debug APK/unsigned release APK/SHA256 | PASSED |
